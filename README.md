@@ -36,11 +36,11 @@ new StreamDbContext("https://localhost:5001")
 ## Purpose
 IQbservable is to IObservable as IQueryable is to IEnumerable, so it follows that stream databases will increasingly support an IQbservable provider.
 
-I discovered the power of EventStore recently.  Previously a projection in C# would take 4 hours but with EventStore's built-in map-reduce running server-side, it now takes 50 seconds.  It also went from many lines of C# and supporting infrastructure to three [EventStore projections](https://eventstore.org/docs/projections/user-defined-projections/index.html) in under a dozen lines of JavaScript code each. But it wasn't just the performance and reduction in developer effort, the querying capabilities got me too.
+I discovered the power of EventStore recently.  Previously, a projection written in C# (with many lines of code and supporting infrastructure) would take four hours to run.  But with EventStore's built-in map-reduce running server-side, in a couple of dozen lines of JavaScript it now takes 50 seconds.  But it wasn't just the performance and reduction in developer effort that I was impressed with, it was the querying capabilities as well.
 
-Being more familiar with Rx I wanted to compare it to EventStore's query API. But then I that it would be straight-forward to implement an IQbservable provider since there's no transpiling required. So here we are.
+So being more familiar with Rx I wanted to compare its capabilities to [EventStore's query API](https://eventstore.org/docs/projections/user-defined-projections/index.html). But then I realised that it would be straight-forward to implement an IQbservable provider since there's no transpiling required. So here we are.
 
-This is an exploratory project for me to take a deep-dive into streaming databases, Rx and to find out what some of the real-world limitations are with this approach.
+This is an exploratory project for me to do a deep-dive into streaming databases. My goals are to learn more about them, Rx and what the real-world limitations are.
 
 ## Direction
 The following features are intended, which will bring this project towards the capabilities of EventStore's current query API.
@@ -62,7 +62,7 @@ new StreamDbContext("https://localhost:5001")
 ```
 
 ### Multiple Event Types
-As with IQueryable, dynamic types (and statement bodies) can't be used because of expression trees.  In general this isn't a major but because event streams can have different event types, there does need to be a sensible way to query over them without a lot of fuss.
+As with IQueryable, dynamic types (and statement bodies) can't be used because of expression trees.  In general, this isn't a major but because event streams can have different event types, there does need to be a sensible way to query over them without a lot of fuss.
 
 ### Server Actions
 Server-side actions in the query are important, for example to `emit` and `linkTo` new streams.
@@ -70,10 +70,10 @@ Server-side actions in the query are important, for example to `emit` and `linkT
 ### Enumerables
 Rather than just observers it would be nice send back enumerations.
 
-### And Beyond
+### Beyond
 From here it's really just about seeing what's possible with Rx's schedulers and its many operations, like `join`, `merge`, `zip`, `fork`, `buffer`, `throttle`, `sample`, etc.
 
-And looking at use-cases for linq syntax,
+And looking at use-cases for compound from clauses,
 
 ```c#
 from e1 in db.FromAll()
