@@ -16,7 +16,7 @@ namespace QbservableProvider.Client
             //    .SelectMany(x => x.Scan(new { Count = 0, Category = "" }, (s, e) => new { Count = s.Count + 1, e.Category }))
             //    .Subscribe(s => Console.WriteLine(s.Category + ": " + s.Count));
 
-            // TODO: Support anonymous types for this query
+            // TODO: Support anonymous types for this query (go figure)
             //(
             //    from e1 in new StreamDbContext("https://localhost:5001").FromAll()
             //    from e2 in new StreamDbContext("https://localhost:5001").FromAll()

@@ -45,7 +45,7 @@ This is an exploratory project for me to do a deep-dive into streaming databases
 ## Direction
 The following features are intended, which will bring this project towards the capabilities of EventStore's current query API.
 
-### An EventStore Integration
+### EventStore Integration
 There's little value to this project until it can be wired up to a server - whether it's a stream database or thin, server-side wrapper for something. The plan is to fork EventStore, hook it up and allow some real-world scenarios to be worked through to improve the provider.
 
 ### Anonymous Types

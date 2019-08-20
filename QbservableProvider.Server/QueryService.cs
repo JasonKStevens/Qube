@@ -34,7 +34,7 @@ namespace QbservableProvider.Server
                     {
                         await streamWriter.WriteAsync(@event);
                     }
-                    catch (InvalidOperationException)  // TEMP: Used to determine client has disconnected
+                    catch (InvalidOperationException)  // TEMP: Quick cheat to determine client has disconnected
                     {
                         @continue = false;
                     }
