@@ -29,12 +29,12 @@ The linq expression is serialized using [Serialize.Linq](https://github.com/essk
 ## Why?
 IQbservable is to IObservable as IQueryable is to IEnumerable, so it follows that stream databases will look towards impementing IQbservable providers.
 
-I discovered the power of [EventStore](https://github.com/EventStore/EventStore) recently.  Previously a projection in C# would take 4 hours, but with EventStore's built-in map-reduce capability it now takes 50 seconds.  This prompted me to look into Rx to see how it compares with [EventStore's query API](https://eventstore.org/docs/projections/user-defined-projections/index.html) and I realised it would be straight-forward to implement a provider since there's no transpiling.
+I discovered the power of [EventStore](https://github.com/EventStore/EventStore) recently.  Previously a projection in C# would take 4 hours, but with EventStore's built-in map-reduce capability running server-side, it now takes 50 seconds.  But it wasn't just the performance, it was the querying capabilities that got me interested.  I wanted to compare Rx with [EventStore's query API](https://eventstore.org/docs/projections/user-defined-projections/index.html) when I realised it would be straight-forward to implement an IQbservable provider since there's no transpiling.
 
-So this is an exploratory project for me to take a deep-dive into streaming databases, Rx and to find out what some of the real-world limitations are.  I hope to hook this up to EventStore next
+So this is an exploratory project for me to take a deep-dive into streaming databases, Rx and to find out what some of the real-world limitations are.  I hope to hook this up to a fork of EventStore at some point.
 
 ## Limitations
-There's no support for anonymous types at the moment which are a must for storing state in reducers. The following _doesn't_ work yet,
+There's no support for anonymous types at the moment which are a must for storing state in the reducers really. The following _doesn't_ work yet,
 
 ```c#
 new StreamDbContext("https://localhost:5001")
@@ -47,4 +47,4 @@ new StreamDbContext("https://localhost:5001")
     .Subscribe(s => Console.WriteLine(s.Category + ": " + s.Count));
 ```
 
-As with IQueryable, dynamic types and statement bodies can't be used because expression trees are used instead of lambdas.
+As with IQueryable, dynamic types and statement bodies can't be used because of the expression trees.
