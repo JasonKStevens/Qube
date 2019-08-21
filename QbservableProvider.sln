@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QbservableProvider.Client",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QbservableProvider.Server", "QbservableProvider.Server\QbservableProvider.Server.csproj", "{2DCF575F-2F7F-46C0-ADB3-E3128B93B27D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QbservableProvider.Core", "QbservableProvider.Common\QbservableProvider.Core.csproj", "{8CA36077-1B27-4BDD-8085-284BB7BC3530}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QbservableProvider.Core", "QbservableProvider.Core\QbservableProvider.Core.csproj", "{8CA36077-1B27-4BDD-8085-284BB7BC3530}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QbservableProvider.Test", "QbservableProvider.Test\QbservableProvider.Test.csproj", "{BEF11B3E-D8B3-41DB-86F3-08669EC19DBF}"
 EndProject
