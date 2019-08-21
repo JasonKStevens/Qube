@@ -15,11 +15,11 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-
-- task: DotNetCoreInstaller@0
-  displayName: 'Install .net core 3.0 (preview)'
+- task: UseDotNet@2
+  displayName: 'Use dotnet sdk 3.x'
   inputs:
-    version: '3.0.100-preview8-013656'
+    version: 3.x
+    includePreviewVersions: true
 
 - task: NuGetToolInstaller@1
 
