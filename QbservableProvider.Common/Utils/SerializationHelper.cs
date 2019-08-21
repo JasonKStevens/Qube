@@ -1,12 +1,12 @@
 ﻿using Newtonsoft.Json;
-using QbservableProvider.Common.Protos;
+using QbservableProvider.Core.GenericGRpcProvider;
 using Serialize.Linq.Serializers;
 using System;
 using System.Linq.Expressions;
 using System.Reactive.Linq;
 using JsonSerializer = Serialize.Linq.Serializers.JsonSerializer;
 
-namespace QbservableProvider.Common
+namespace QbservableProvider.Core
 {
     public static class SerializationHelper
     {
@@ -19,37 +19,37 @@ namespace QbservableProvider.Common
             return expressionSerializer;
         }
 
-        internal static ParameterExpression NewObserverParameter()
+        internal static ParameterExpression NewObserverParameter<T>()
         {
-            return Expression.Parameter(typeof(IQbservable<Event>), "o");
+            return Expression.Parameter(typeof(IQbservable<T>), "o");
         }
 
-        public static Expression Deserialise(string expressionString)
-        {
-            var serializer = new ExpressionSerializer(new JsonSerializer());
-            var expression = serializer.DeserializeText(expressionString);
-            return expression;
-        }
-
-        public static EventEnvelope Pack(object payload, Type returnType)
-        {
-            return new EventEnvelope
-            {
-                Payload = JsonConvert.SerializeObject(payload)
-            };
-        }
-
-        internal static string SerializeLinqExpression<T>(Expression expression)
+        internal static string SerializeLinqExpression<TIn, TOut>(Expression expression)
         {
             ExpressionSerializer expressionSerializer = NewExpressionSerializer
             (
                 typeof(StringSplitOptions)
             );
 
-            var parameter = SerializationHelper.NewObserverParameter();
-            var lambda = Expression.Lambda<Func<IQbservable<Event>, IQbservable<T>>>(expression, parameter);
+            var parameter = NewObserverParameter<TIn>();
+            var lambda = Expression.Lambda<Func<IQbservable<TIn>, IQbservable<TOut>>>(expression, parameter);
             var serializedLambda = expressionSerializer.SerializeText(lambda);
             return serializedLambda;
+        }
+
+        public static Expression DeserializeLinqExpression(string expressionString)
+        {
+            var serializer = new ExpressionSerializer(new JsonSerializer());
+            var expression = serializer.DeserializeText(expressionString);
+            return expression;
+        }
+
+        public static EventEnvelope Pack(object payload)
+        {
+            return new EventEnvelope
+            {
+                Payload = JsonConvert.SerializeObject(payload)
+            };
         }
 
         public static T Unpack<T>(EventEnvelope @event)

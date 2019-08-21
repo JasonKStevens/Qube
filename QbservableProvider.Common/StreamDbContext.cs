@@ -1,38 +1,38 @@
 ﻿using System;
 using System.Reactive.Linq;
 
-namespace QbservableProvider.Common
+namespace QbservableProvider.Core
 {
-    public class StreamDbContext
+    public class StreamDbContext<T>
     {
-        private readonly string _url;
+        private readonly StreamDbContextOptions _options;
 
-        public StreamDbContext(string url)
+        public StreamDbContext(StreamDbContextOptions options)
         {
-            _url = url;
+            _options = options;
         }
 
-        public IQbservable<Event> FromAll()
+        public IQbservable<T> FromAll()
         {
-            return new Stream<Event>(_url);
+            return _options.CreateStream<T>();
         }
 
-        public IQbservable<Event> FromCategory(string categoryName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IQbservable<Event> FromCategories(params string[] categoryNames)
+        public IQbservable<T> FromCategory(string categoryName)
         {
             throw new NotImplementedException();
         }
 
-        public IQbservable<Event> FromStream(string streamName)
+        public IQbservable<T> FromCategories(params string[] categoryNames)
         {
-            return new Stream<Event>(_url, streamName);
+            throw new NotImplementedException();
         }
 
-        public IQbservable<Event> FromStreams(params string[] streamName)
+        public IQbservable<T> FromStream(string streamName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IQbservable<T> FromStreams(params string[] streamName)
         {
             throw new NotImplementedException();
         }

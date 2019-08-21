@@ -1,4 +1,4 @@
-﻿namespace QbservableProvider.Common
+﻿namespace QbservableProvider.Core
 {
     public class Event
     {

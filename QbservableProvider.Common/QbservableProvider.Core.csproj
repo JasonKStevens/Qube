@@ -5,13 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Protos\StreamService.proto" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.9.1" />
     <PackageReference Include="Grpc.Core" Version="2.23.0" />
     <PackageReference Include="Grpc.Net.Client" Version="0.1.22-pre3" />
+    <PackageReference Include="LiteGuard" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3-beta1" />
     <PackageReference Include="Serialize.Linq" Version="1.8.1" />
     <PackageReference Include="System.Reactive.Linq" Version="4.1.6" />
@@ -22,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-      <Protobuf Include="Protos\StreamService.proto" ClientBaseType="ClientBase" />
+      <Protobuf Include="GenericGRpcProvider\StreamService.proto" ClientBaseType="ClientBase" />
   </ItemGroup>
 
 </Project>

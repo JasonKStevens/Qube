@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Reactive.Linq;
-using QbservableProvider.Common;
+using QbservableProvider.Core;
+using QbservableProvider.Core.GenericGRpcProvider;
 
 namespace QbservableProvider.Client
 {
@@ -24,7 +25,11 @@ namespace QbservableProvider.Client
             //    select e1.Id + " - " + e2.Id
             //).Subscribe(e => Console.WriteLine(e));
 
-            new StreamDbContext("https://localhost:5001")
+            var options = new StreamDbContextOptionsBuilder()
+                .UseGenericGRpcStreams("https://localhost:5001")
+                .Options;
+
+            new EventStreamDbContext(options)
                 .FromAll()
                 .GroupBy(e => e.Category)
                 .SelectMany(g =>

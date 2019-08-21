@@ -4,8 +4,8 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Grpc.Core;
-using QbservableProvider.Common;
-using QbservableProvider.Common.Protos;
+using QbservableProvider.Core;
+using QbservableProvider.Core.GenericGRpcProvider;
 
 namespace QbservableProvider.Server
 {
@@ -20,15 +20,17 @@ namespace QbservableProvider.Server
             IServerStreamWriter<EventEnvelope> streamWriter,
             ServerCallContext callContext)
         {
-            var expression = SerializationHelper.Deserialise(queryEnvelope.Payload);
-            var lambdaExpr = ((LambdaExpression)expression);
+            var expression = SerializationHelper.DeserializeLinqExpression(queryEnvelope.Payload);
+            var lambdaExpr = (LambdaExpression) expression;
             var lambda = lambdaExpr.Compile();
             var @continue = true;
 
             // TODO: Build this up with reflection so the generic parameter isn't restricted
-            var sub = ((IQbservable<object>) lambda.DynamicInvoke(_subject.AsQbservable()))
+            var qbservable = ((IQbservable<object>)lambda.DynamicInvoke(_subject.AsQbservable()));
+
+            var sub = qbservable
                 .Subscribe(async e => {
-                    var @event = SerializationHelper.Pack(e, lambdaExpr.ReturnType);
+                    var @event = SerializationHelper.Pack(e);
                     
                     try
                     {

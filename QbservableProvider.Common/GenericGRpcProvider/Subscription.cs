@@ -1,39 +1,40 @@
 ﻿using Grpc.Core;
 using Grpc.Net.Client;
-using QbservableProvider.Common.Protos;
+using LiteGuard;
+using QbservableProvider.Core.GenericGRpcProvider;
 using System;
 using System.Linq.Expressions;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace QbservableProvider.Common
+namespace QbservableProvider.Core.GenericGRpcProvider
 {
     internal class Subscription : IDisposable
     {
         private static readonly HttpClient _httpClient;
 
-        private readonly string _url;
         private readonly Expression _expression;
+        private readonly StreamDbContextOptions _options;
         private readonly CancellationTokenSource _cancelSource;
 
         private AsyncServerStreamingCall<EventEnvelope> _streamingCall;
 
-        internal Subscription(string url, Expression expression)
+        internal Subscription(Expression expression, StreamDbContextOptions options)
         {
-            _url = url;
             _expression = expression;
+            _options = options;
             _cancelSource = new CancellationTokenSource();
         }
 
-        internal void Subscribe<T>(IObserver<T> observer)
+        internal void Attach<TIn, TOut>(IObserver<TOut> observer)
         {
-            var seralizedExpressoin = SerializationHelper.SerializeLinqExpression<T>(_expression);
+            var seralizedExpression = SerializationHelper.SerializeLinqExpression<TIn, TOut>(_expression);
 
-            var httpClient = _httpClient ?? new HttpClient { BaseAddress = new Uri(_url) };  // TODO: Use HttpClientFactory
+            var httpClient = _httpClient ?? new HttpClient { BaseAddress = new Uri(_options.ConnectionString) };  // TODO: Use HttpClientFactory
             var client = GrpcClient.Create<StreamService.StreamServiceClient>(httpClient);
 
-            var queryEnvelope = new QueryEnvelope { Payload = seralizedExpressoin };
+            var queryEnvelope = new QueryEnvelope { Payload = seralizedExpression };
             _streamingCall = client.QueryStreamAsync(queryEnvelope);
 
             // TODO: No need for one thread per subscription - this can be made more efficient

@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\QbservableProvider.Common\QbservableProvider.Common.csproj" />
+    <ProjectReference Include="..\QbservableProvider.Common\QbservableProvider.Core.csproj" />
   </ItemGroup>
 
 </Project>
