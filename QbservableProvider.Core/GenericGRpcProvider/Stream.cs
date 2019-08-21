@@ -13,9 +13,7 @@ namespace QbservableProvider.Core.GenericGRpcProvider
         public Expression Expression { get; private set; }
         public IQbservableProvider Provider { get; private set; }
 
-        /// <summary>
-        /// Constructor called by context options.
-        /// </summary>
+        // Called by stream factory given to context options
         public Stream(StreamDbContextOptions options)
         {
             _options = options;
@@ -25,9 +23,7 @@ namespace QbservableProvider.Core.GenericGRpcProvider
             Expression = SerializationHelper.NewObserverParameter<TOut>();
         }
 
-        /// <summary>
-        /// Constructor called by provider.
-        /// </summary>
+        // Stream is created a second time by qbservable provider when linq is used.
         public Stream(IQbservableProvider provider, Expression expression, StreamDbContextOptions options)
         {
             ElementType = typeof(TOut);

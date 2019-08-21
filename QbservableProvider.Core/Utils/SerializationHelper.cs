@@ -19,6 +19,7 @@ namespace QbservableProvider.Core
             return expressionSerializer;
         }
 
+        // TODO: Move away from here
         internal static ParameterExpression NewObserverParameter<T>()
         {
             return Expression.Parameter(typeof(IQbservable<T>), "o");
@@ -31,6 +32,7 @@ namespace QbservableProvider.Core
                 typeof(StringSplitOptions)
             );
 
+            // TODO: Pull this expression stuff out
             var parameter = NewObserverParameter<TIn>();
             var lambda = Expression.Lambda<Func<IQbservable<TIn>, IQbservable<TOut>>>(expression, parameter);
             var serializedLambda = expressionSerializer.SerializeText(lambda);

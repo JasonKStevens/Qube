@@ -76,5 +76,23 @@ namespace Tests
             // Assert
             Assert.That(value, Is.EqualTo("some-value"));
         }
+
+        [Test]
+        public void should_pass_through_linq_expression()
+        {
+            // Arrange
+            int eventCount = 0;
+
+            _sub = _sut.FromAll()
+                .Where(x => x != null)
+                .Subscribe(x => eventCount++);
+
+            // Act
+            _subject.OnNext(null);
+            _subject.OnNext("some-value");
+
+            // Assert
+            Assert.That(eventCount, Is.EqualTo(1));
+        }
     }
 }

@@ -26,7 +26,7 @@ namespace QbservableProvider.Server
             var @continue = true;
 
             // TODO: Build this up with reflection so the generic parameter isn't restricted
-            var qbservable = ((IQbservable<object>)lambda.DynamicInvoke(_subject.AsQbservable()));
+            var qbservable = (IQbservable<object>) lambda.DynamicInvoke(_subject.AsQbservable());
 
             var sub = qbservable
                 .Subscribe(async e => {
