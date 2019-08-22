@@ -1,4 +1,6 @@
 # QbservableProvider
+[![Build Status](https://dev.azure.com/jasonkstevens/PuzzleBox/_apis/build/status/JasonKStevens.QbservableProvider?branchName=master)](https://dev.azure.com/jasonkstevens/PuzzleBox/_build/latest?definitionId=7&branchName=master)
+
 Write [Rx](https://github.com/dotnet/reactive) queries on the client, have them run on the remote server and stream back the results via [gRPC](https://grpc.io).
 
 ```c#
