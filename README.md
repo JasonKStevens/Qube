@@ -1,7 +1,7 @@
 # QbservableProvider
 A serverless Qbservable provider for running [Reactive Extension (Rx)](https://github.com/dotnet/reactive) queries over [gRPC](https://grpc.io).
 
-This provider does not transpile linq-to-some-query-language, it's intended for a streaming database written in C# like [EventStore](https://github.com/EventStore/EventStore). In other words, linq _is_ the query language, along with observables and the built-in power of the Rx schedulers.
+This provider does not transpile linq-to-some-query-language, it's intended for a streaming database written in C# like [EventStore](https://github.com/EventStore/EventStore). In other words, linq _is_ the query language, along with observables and the built-in Rx schedulers.
 
 ```c#
 // Simple example
@@ -41,6 +41,13 @@ I discovered the power of EventStore recently.  Previously, a projection written
 So being more familiar with Rx I wanted to compare its capabilities to [EventStore's query API](https://eventstore.org/docs/projections/user-defined-projections/index.html). But then I realised that it would be straight-forward to implement an IQbservable provider since there's no transpiling required. So here we are.
 
 This is an exploratory project for me to do a deep-dive into streaming databases. My goals are to learn more about them, Rx and what the real-world limitations are.
+
+## Status
+The project is currently moving from a proof-of-concept to a more maintainable code-base, so there's some design going in and unit tests are taking precedence.
+
+At the moment the focus is on the in-memory provider to flesh out the design. From there the gRPC provider to flesh out server support, and from there an EventStore provider.
+
+CI will come.
 
 ## Direction
 The following features are intended, which will bring this project towards the capabilities of EventStore's current query API.
