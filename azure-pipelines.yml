@@ -1,13 +1,16 @@
-# ASP.NET Core (.NET Framework)
-# Build and test ASP.NET Core projects targeting the full .NET Framework.
-# Add steps that publish symbols, save build artifacts, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+# CI for PuzzleBox.NeuralNets
+# Build & Test
 
 trigger:
-- master
+  branches:
+    include:
+    - master
+  paths:
+    exclude:
+    - azure-pipelines.yml
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'windows-2019'
 
 variables:
   solution: '**/*.sln'
@@ -15,8 +18,7 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-- task: NuGetToolInstaller@1
-
+# .Net Core 3.0 SDK
 - task: UseDotNet@2
   displayName: 'Use dotnet sdk 3.0.x'
   inputs:
@@ -25,18 +27,10 @@ steps:
     includePreviewVersions: true
     installationPath: $(Agent.ToolsDirectory)/dotnet
 
-- task: NuGetCommand@2
-  inputs:
-    restoreSolution: '$(solution)'
+# Build
+- script: dotnet build -c $(buildConfiguration)
+  displayName: 'Build'
 
-- task: VSBuild@1
-  inputs:
-    solution: '$(solution)'
-    msbuildArgs: '/p:DeployOnBuild=false'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
-
-- task: VSTest@2
-  inputs:
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+# Test
+- script: dotnet test -c $(buildConfiguration) --no-build
+  displayName: 'Test'

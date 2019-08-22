@@ -9,9 +9,9 @@ var options = new StreamDbContextOptionsBuilder()
 
 new StreamDbContext(options)
     .FromAll()
-    .Where(e => e.Category == "Category1")
-    .Select(e => e.Id)
-    .Subscribe(s => Console.WriteLine(s));
+    .Where(e => e.Category == "Category1" || e.Category == "Category2")
+    .Take(50)
+    .Subscribe(s => Console.WriteLine(s.Id));
 ```
 
 Linq expressions are serialized using [Serialize.Linq](https://github.com/esskar/Serialize.Linq), sent to the server, wrapped around an observable there, and finally the results are streamed back to the client observer.
