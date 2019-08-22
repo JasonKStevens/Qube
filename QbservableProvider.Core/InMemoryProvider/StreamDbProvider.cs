@@ -4,22 +4,20 @@ using System.Reactive.Linq;
 
 namespace QbservableProvider.Core.InMemoryProvider
 {
-    internal class StreamDbProvider<T> : IQbservableProvider
+    internal class StreamDbProvider<TIn> : IQbservableProvider
     {
-        private IObservable<T> _observable;
-        private StreamDbContextOptions _options;
+        private readonly IObservable<TIn> _observable;
+        private readonly StreamDbContextOptions _options;
         
-        public StreamDbProvider(IObservable<T> observable, StreamDbContextOptions options)
+        public StreamDbProvider(IObservable<TIn> observable, StreamDbContextOptions options)
         {
             _observable = observable;
             _options = options;
         }
 
-        public IQbservable<TResult> CreateQuery<TResult>(Expression expression)
+        public IQbservable<TOut> CreateQuery<TOut>(Expression expression)
         {
-            if (typeof(T) != typeof(TResult))
-                throw new InvalidCastException($"Query type {typeof(TResult).Name} must match source observable type {typeof(T).Name}.");
-            return (IQbservable<TResult>) new Stream<T>(this, expression, _observable, _options);
+            return new QueryStream<TIn, TOut>(this, expression, _observable, _options);
         }
     }
 }

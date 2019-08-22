@@ -20,9 +20,9 @@ namespace QbservableProvider.Core
             ConnectionString = url;
         }
 
-        internal IQbservable<T> CreateStream<T>()
+        internal IQbservable<TIn> CreateStream<TIn>()
         {
-            return (IQbservable<T>) _streamFactory(this, typeof(T));
+            return (IQbservable<TIn>) _streamFactory(this, typeof(TIn));
         }
     }
 }

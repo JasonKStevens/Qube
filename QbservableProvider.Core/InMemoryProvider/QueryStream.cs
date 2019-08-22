@@ -4,28 +4,32 @@ using System.Reactive.Linq;
 
 namespace QbservableProvider.Core.InMemoryProvider
 {
-    internal class Stream<T> : IQbservable<T>
+    internal class QueryStream<TIn, TOut> : IQbservable<TOut>
     {
         private readonly StreamDbContextOptions _options;
-        private readonly IObservable<T> _observable;
+        private readonly IObservable<TIn> _observable;
 
         public Type ElementType { get; private set; }
         public Expression Expression { get; private set; }
         public IQbservableProvider Provider { get; private set; }
 
-        public Stream(IObservable<T> observable, StreamDbContextOptions options)
+        public QueryStream(
+            IQbservableProvider provider,
+            Expression expression,
+            IObservable<TIn> observable,
+            StreamDbContextOptions options)
         {
             _observable = observable;
             _options = options;
 
-            ElementType = typeof(T);
-            Provider = new StreamDbProvider<T>(observable, options);
-            Expression = SerializationHelper.NewObserverParameter<T>();
+            ElementType = typeof(TIn);
+            Provider = provider;
+            Expression = expression;
         }
 
-        public IDisposable Subscribe(IObserver<T> observer)
+        public IDisposable Subscribe(IObserver<TOut> observer)
         {
-            var sub = new Subscription<T, T>(Expression, _observable, _options);
+            var sub = new Subscription<TIn, TOut>(Expression, _observable, _options);
             sub.Attach(observer);
             return sub;
         }

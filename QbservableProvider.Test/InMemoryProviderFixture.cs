@@ -1,20 +1,19 @@
+using System;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using Microsoft.Reactive.Testing;
 using NUnit.Framework;
 using QbservableProvider.Core;
 using QbservableProvider.Core.InMemoryProvider;
-using System;
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
 
 namespace Tests
 {
     public class InMemoryProviderFixture
     {
         private StreamDbContext<string> _sut;
+        private Subject<string> _subject;
         private IDisposable _sub;
         private TestScheduler _scheduler;
-        private Subject<string> _subject;
 
         [SetUp]
         public void Setup()
@@ -22,7 +21,7 @@ namespace Tests
             _subject = new Subject<string>();
 
             var options = new StreamDbContextOptionsBuilder()
-                .UseInMemoryStream(_subject)
+                .UseInMemoryStream(_subject.AsQbservable())
                 .Options;
 
             _sut = new StreamDbContext<string>(options);
@@ -78,7 +77,7 @@ namespace Tests
         }
 
         [Test]
-        public void should_pass_through_linq_expression()
+        public void should_pass_apply_linq_expression()
         {
             // Arrange
             int eventCount = 0;
@@ -93,6 +92,58 @@ namespace Tests
 
             // Assert
             Assert.That(eventCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void should_convert_to_different_out_type()
+        {
+            // Arrange
+            int result = 0;
+
+            _sub = _sut.FromAll()
+                .Select(x => int.Parse(x))
+                .Subscribe(x => result = x);
+
+            // Act
+            _subject.OnNext("123");
+
+            // Assert
+            Assert.That(result, Is.EqualTo(123));
+        }
+
+        [Test]
+        public void should_complete()
+        {
+            // Arrange
+            var completed = false;
+
+            _sub = _sut.FromAll()
+                .Select(x => int.Parse(x))
+                .Subscribe(_ => {}, () => completed = true);
+
+            // Act
+            _subject.OnCompleted();
+
+            // Assert
+            Assert.That(completed, Is.True);
+        }
+
+        [Test]
+        public void should_error()
+        {
+            // Arrange
+            Exception actualError = null;
+            var expectedError = new Exception();
+
+            _sub = _sut.FromAll()
+                .Select(x => int.Parse(x))
+                .Subscribe(_ => {}, ex => actualError = ex);
+
+            // Act
+            _subject.OnError(expectedError);
+
+            // Assert
+            Assert.That(actualError, Is.EqualTo(expectedError));
         }
     }
 }
