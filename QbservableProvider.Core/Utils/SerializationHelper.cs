@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-using QbservableProvider.Core.GenericGRpcProvider;
+using QbservableProvider.Core.GRpcProvider;
 using Serialize.Linq.Serializers;
 using System;
 using System.Linq.Expressions;

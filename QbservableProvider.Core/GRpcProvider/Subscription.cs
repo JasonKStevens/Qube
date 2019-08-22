@@ -1,37 +1,35 @@
 ﻿using Grpc.Core;
 using Grpc.Net.Client;
-using LiteGuard;
-using QbservableProvider.Core.GenericGRpcProvider;
 using System;
 using System.Linq.Expressions;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace QbservableProvider.Core.GenericGRpcProvider
+namespace QbservableProvider.Core.GRpcProvider
 {
     internal class Subscription : IDisposable
     {
-        private static readonly HttpClient _httpClient;
-
-        private readonly Expression _expression;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly StreamDbContextOptions _options;
         private readonly CancellationTokenSource _cancelSource;
 
         private AsyncServerStreamingCall<EventEnvelope> _streamingCall;
 
-        internal Subscription(Expression expression, StreamDbContextOptions options)
+        internal Subscription(IHttpClientFactory httpClientFactory, StreamDbContextOptions options)
         {
-            _expression = expression;
+            _httpClientFactory = httpClientFactory;
             _options = options;
             _cancelSource = new CancellationTokenSource();
         }
 
-        internal void Attach<TIn, TOut>(IObserver<TOut> observer)
+        internal void Connect<TIn, TOut>(Expression expression, IObserver<TOut> observer)
         {
-            var seralizedExpression = SerializationHelper.SerializeLinqExpression<TIn, TOut>(_expression);
+            var seralizedExpression = SerializationHelper.SerializeLinqExpression<TIn, TOut>(expression);
 
-            var httpClient = _httpClient ?? new HttpClient { BaseAddress = new Uri(_options.ConnectionString) };  // TODO: Use HttpClientFactory
+            var httpClient = _httpClientFactory.CreateClient("GrpcProvider");
+            httpClient.BaseAddress = new Uri(_options.ConnectionString);
+
             var client = GrpcClient.Create<StreamService.StreamServiceClient>(httpClient);
 
             var queryEnvelope = new QueryEnvelope { Payload = seralizedExpression };

@@ -1,5 +1,5 @@
 syntax = "proto3";
-option csharp_namespace = "QbservableProvider.Core.GenericGRpcProvider";
+option csharp_namespace = "QbservableProvider.Core.GRpcProvider";
 
 package Greet;
 

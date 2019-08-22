@@ -5,7 +5,7 @@ using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Grpc.Core;
 using QbservableProvider.Core;
-using QbservableProvider.Core.GenericGRpcProvider;
+using QbservableProvider.Core.GRpcProvider;
 
 namespace QbservableProvider.Server
 {

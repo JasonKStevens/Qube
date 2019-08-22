@@ -1,7 +1,6 @@
 using System;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using Microsoft.Reactive.Testing;
 using NUnit.Framework;
 using QbservableProvider.Core;
 using QbservableProvider.Core.InMemoryProvider;
@@ -13,7 +12,6 @@ namespace Tests
         private StreamDbContext<string> _sut;
         private Subject<string> _subject;
         private IDisposable _sub;
-        private TestScheduler _scheduler;
 
         [SetUp]
         public void Setup()

@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using System.Reactive.Linq;
 using QbservableProvider.Core;
-using QbservableProvider.Core.GenericGRpcProvider;
+using QbservableProvider.Core.GRpcProvider;
 
 namespace QbservableProvider.Client
 {
@@ -26,7 +26,7 @@ namespace QbservableProvider.Client
             //).Subscribe(e => Console.WriteLine(e));
 
             var options = new StreamDbContextOptionsBuilder()
-                .UseGenericGRpcStreams("https://localhost:5001")
+                .UseGRpcStream("https://localhost:5001")
                 .Options;
 
             new EventStreamDbContext(options)
