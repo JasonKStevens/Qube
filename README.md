@@ -1,7 +1,7 @@
 # QbservableProvider (Rx for EventStore)
 [![Build Status](https://dev.azure.com/jasonkstevens/PuzzleBox/_apis/build/status/JasonKStevens.QbservableProvider?branchName=master)](https://dev.azure.com/jasonkstevens/PuzzleBox/_build/latest?definitionId=7&branchName=master)
 
-Just as IQueriable was a big deal for relational databases access, it follows that IQbservable will be a big deal for stream or functional databases.
+Just as IQueriable was a big deal for relational database access, it follows that IQbservable will be a big deal for stream or functional databases.
 
 This library lets [Rx](https://github.com/dotnet/reactive) queries written on the client (C#) be executed on the server and so just the results streamed back.
 
