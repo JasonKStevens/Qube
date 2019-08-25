@@ -1,7 +1,11 @@
-# QbservableProvider
+# QbservableProvider (Rx for EventStore)
 [![Build Status](https://dev.azure.com/jasonkstevens/PuzzleBox/_apis/build/status/JasonKStevens.QbservableProvider?branchName=master)](https://dev.azure.com/jasonkstevens/PuzzleBox/_build/latest?definitionId=7&branchName=master)
 
-Write [Rx](https://github.com/dotnet/reactive) queries on the client, have them run on the remote server and stream back the results via [gRPC](https://grpc.io).
+Just as IQueriable was a big deal for relational databases access, it follows that IQbservable will be a big deal for stream or functional databases.
+
+This library lets [Rx](https://github.com/dotnet/reactive) queries written on the client (C#) be executed on the server and so just the results streamed back.
+
+It is an experimental client for [EventStore](https://github.com/EventStore/EventStore) but written to be more general purpose.
 
 ```c#
 // Simple example
@@ -44,17 +48,17 @@ The project is currently moving from a proof-of-concept to a maintainable code-b
 
 The in-memory provider is good enough for the moment so the focus has moved to the gRPC provider which will be used to to flesh out the design for remote server support. From there an EventStore provider will be looked at.
 
-There's a client & server project to run that show things basically working.
+There's a client & server project to run that shows things basically working.
 
 ## Motivation
-I discovered the power of EventStore recently.  Previously, a projection written in C# - with many lines of code and supporting infrastructure - would take four hours to run.  But with EventStore's server-side map-reduce, the projection now takes just 50 seconds. And it does this in just a couple of dozen lines of JavaScript.  But it wasn't just the performance and reduction in developer effort that I was impressed with, it was the querying capabilities as well.
+I discovered the power of EventStore recently.  Previously, a projection written in C# - with many lines of code and supporting infrastructure - would take four hours to run.  But with EventStore's server-side map-reduce, the projection now takes just 50 seconds. And it does this in a couple of dozen lines of JavaScript.  But it wasn't just the performance and reduction in developer effort that I was impressed with, it was the querying capabilities as well.
 
-So being more familiar with Rx I wanted to compare its capabilities to [EventStore's query API](https://eventstore.org/docs/projections/user-defined-projections/index.html). Then I realised that it would be straight-forward to implement an IQbservable provider since no transpiling is required. So here we are.
+Being more familiar with Rx I wanted to compare it to [EventStore's query API](https://eventstore.org/docs/projections/user-defined-projections/index.html). Then I realised that it would be straight-forward to implement an IQbservable provider for EventStore since no transpiling is required. So here we are.
 
 This is an exploratory project for me to do a deep-dive into streaming databases. My goals are to learn more about them, Rx and what the real-world limitations are.
 
 ## Direction
-The intention is to support the following features, which will bring this project towards the capabilities of EventStore's current query API.
+The intention is to support the following features, which will bring this project towards the capabilities of EventStore's query API.
 
 ### Anonymous Types
 Anonymous types are not supported by Serialize.Linq at the moment, which is a must for storing state in the reducers conveniently and it would be handy for results. The following _doesn't_ work yet but is what the query above would look like with anonymous type support,
