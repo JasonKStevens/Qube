@@ -5,7 +5,7 @@ using NUnit.Framework;
 using QbservableProvider.Core;
 using QbservableProvider.Core.InMemoryProvider;
 
-namespace Tests
+namespace QbservableProvider.Test
 {
     public class InMemoryProviderFixture
     {

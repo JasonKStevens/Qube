@@ -7,27 +7,27 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
-namespace Tests
+namespace QbservableProvider.Test
 {
     public class QueryFixture : ReactiveTest
     {
-        private EventStreamDbContext _sut;
+        private StreamDbContext<EventFake> _sut;
         private IDisposable _subscription;
         private TestScheduler _scheduler;
-        private Subject<Event> _subject;
+        private Subject<EventFake> _subject;
 
         [SetUp]
         public void Setup()
         {
             // http://introtorx.com/Content/v1.0.10621.0/16_TestingRx.html
             _scheduler = new TestScheduler();
-            _subject = new Subject<Event>();
+            _subject = new Subject<EventFake>();
 
             var options = new StreamDbContextOptionsBuilder()
                 .UseInMemoryStream(_subject)
                 .Options;
 
-            _sut = new EventStreamDbContext(options);
+            _sut = new StreamDbContext<EventFake>(options);
         }
 
         [TearDown]

@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using QbservableProvider.Core.GRpcProvider;
 using Serialize.Linq.Serializers;
 using System;
 using System.Linq.Expressions;
@@ -12,7 +11,7 @@ namespace QbservableProvider.Core
     {
         private static readonly JsonSerializer JsonSerializer = new JsonSerializer();
 
-        internal static ExpressionSerializer NewExpressionSerializer(params Type[] knownTypes)
+        public static ExpressionSerializer NewExpressionSerializer(params Type[] knownTypes)
         {
             var expressionSerializer = new ExpressionSerializer(JsonSerializer);
             expressionSerializer.AddKnownType(typeof(StringSplitOptions));  // TODO: Have this come in from above
@@ -20,12 +19,12 @@ namespace QbservableProvider.Core
         }
 
         // TODO: Move away from here
-        internal static ParameterExpression NewObserverParameter<T>()
+        public static ParameterExpression NewObserverParameter<T>()
         {
             return Expression.Parameter(typeof(IQbservable<T>), "o");
         }
 
-        internal static string SerializeLinqExpression<TIn, TOut>(Expression expression)
+        public static string SerializeLinqExpression<TIn, TOut>(Expression expression)
         {
             ExpressionSerializer expressionSerializer = NewExpressionSerializer
             (
@@ -54,11 +53,11 @@ namespace QbservableProvider.Core
             };
         }
 
-        public static T Unpack<T>(EventEnvelope @event)
+        public static T Unpack<T>(string payload)
         {
             return typeof(T).Name.Contains("AnonymousType") ?
-                JsonConvert.DeserializeAnonymousType(@event.Payload, default(T)) :
-                JsonConvert.DeserializeObject<T>(@event.Payload);
+                JsonConvert.DeserializeAnonymousType(payload, default(T)) :
+                JsonConvert.DeserializeObject<T>(payload);
         }
     }
 }

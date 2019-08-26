@@ -1,28 +1,36 @@
-# QbservableProvider (Rx for EventStore)
+# Qbservable Provider (Rx for EventStore)
 [![Build Status](https://dev.azure.com/jasonkstevens/PuzzleBox/_apis/build/status/JasonKStevens.QbservableProvider?branchName=master)](https://dev.azure.com/jasonkstevens/PuzzleBox/_build/latest?definitionId=7&branchName=master)
 
-Just as IQueriable was a big deal for relational databases access, it follows that IQbservable will be a big deal for stream or functional databases.
+This library is an experimental [Rx](https://github.com/dotnet/reactive) client for [EventStore](https://github.com/EventStore/EventStore)  written to be general purpose.
 
-This library lets [Rx](https://github.com/dotnet/reactive) queries written on the client (C#) be executed on the server and so just the results streamed back.
+Just as IQueriable was a big deal for relational databases access, it follows that IQbservable will be a big deal for stream and functional databases.
 
-It is an experimental client for [EventStore](https://github.com/EventStore/EventStore) but written to be more general purpose.
+This library lets Rx queries be written on the client (C#), executed on the server and just the results streamed back.
 
 ```c#
-// Simple example
 var options = new StreamDbContextOptionsBuilder()
-    .UseGRpcStream("https://localhost:5001")
+    .UseEventStore("127.0.0.1:5001")
     .Options;
 
-new StreamDbContext(options)
+new EventStoreContext(options)
     .FromAll()
-    .Where(e => e.Category == "Category1" || e.Category == "Category2")
-    .Take(50)
-    .Subscribe(s => Console.WriteLine(s.Id));
+    .Where(e => e.EventType == "CustomerCreatedEvent")
+    .Where(e => e.Created >= new DateTime(2018, 10, 1))
+    .TakeWhile(e => e.Created < new DateTime(2018, 11, 1))
+    .Subscribe(
+        onNext: s =>
+        {
+            var @event = JsonConvert.DeserializeObject<CustomerCreatedEvent>(s.Data);
+            Console.WriteLine($"{@event.CustomerId}: {@event.Email}");
+        },
+        onError: e => Console.WriteLine("ERROR: " + e),
+        onCompleted: () => Console.WriteLine("DONE")
+    );
 ```
 
-Linq expressions are serialized using [Serialize.Linq](https://github.com/esskar/Serialize.Linq), sent to the server, wrapped around an observable there, and finally the results are streamed back to the client observer.
+There's no transpiling of _linq-to-some-query-language_ - it's intended for stream databases or servers written in C# like EventStore. In other words, linq _is_ the query language, along with observables and the built-in power of the Rx schedulers.
 
-This library isn't for transpiling _linq-to-some-query-language_, it's intended for stream databases or servers written in C# like [EventStore](https://github.com/EventStore/EventStore). In other words, linq _is_ the query language, along with observables and the built-in power of the Rx schedulers.
+Linq expressions are serialized using [Serialize.Linq](https://github.com/esskar/Serialize.Linq), sent to the server, wrapped around a subject there, and finally the results are streamed back to the client observer over [gRpc](https://grpc.io/).
 
 ```c#
 // Map-reduce example
@@ -44,16 +52,10 @@ new StreamDbContext(options)
 ```
 
 ## Status
-The project is currently moving from a proof-of-concept to a maintainable code-base. The design's taking shape and unit tests are taking precedence.
-
-The in-memory provider is good enough for the moment so the focus has moved to the gRPC provider which will be used to to flesh out the design for remote server support. From there an EventStore provider will be looked at.
-
-There's a client & server project to run that shows things basically working.
+The project is currently moving from a proof-of-concept to a more maintainable state.
 
 ## Motivation
-I discovered the power of EventStore recently.  Previously, a projection written in C# - with many lines of code and supporting infrastructure - would take four hours to run.  But with EventStore's server-side map-reduce, the projection now takes just 50 seconds. And it does this in a couple of dozen lines of JavaScript.  But it wasn't just the performance and reduction in developer effort that I was impressed with, it was the querying capabilities as well.
-
-Being more familiar with Rx I wanted to compare it to [EventStore's query API](https://eventstore.org/docs/projections/user-defined-projections/index.html). Then I realised that it would be straight-forward to implement an IQbservable provider for EventStore since no transpiling is required. So here we are.
+I discovered the power of EventStore's projections recently.  In particular, its server-side map-reduce.  Out of curiosity I wanted to compare [EventStore's query API](https://eventstore.org/docs/projections/user-defined-projections/index.html) with Rx. It was then that I realised that since EventStore was written in C#, it would be fairly straight-forward to implement an IQbservable provider for it. So here we are.
 
 This is an exploratory project for me to do a deep-dive into streaming databases. My goals are to learn more about them, Rx and what the real-world limitations are.
 

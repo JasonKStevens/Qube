@@ -18,15 +18,6 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-# .Net Core 3.0 SDK
-- task: UseDotNet@2
-  displayName: 'Use dotnet sdk 3.0.x'
-  inputs:
-    packageType: sdk
-    version: 3.0.x
-    includePreviewVersions: true
-    installationPath: $(Agent.ToolsDirectory)/dotnet
-
 # Build
 - script: dotnet build -c $(buildConfiguration)
   displayName: 'Build'
