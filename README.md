@@ -1,30 +1,30 @@
-# Qube (Rx for EventStore)
+# Qube
 [![Build Status](https://dev.azure.com/jasonkstevens/PuzzleBox/_apis/build/status/JasonKStevens.QbservableProvider?branchName=master)](https://dev.azure.com/jasonkstevens/PuzzleBox/_build/latest?definitionId=7&branchName=master)
 
-This library is an experimental [Rx](https://github.com/dotnet/reactive) client for [EventStore](https://github.com/EventStore/EventStore)  written to be general purpose.
+This library is an experimental [Rx](https://github.com/dotnet/reactive) client for an [EventStore fork](https://github.com/JasonKStevens/EventStoreRx), but written to be general purpose.
 
-This library lets Rx queries be written on a C# client, have the query execute on the server and just the results streamed back.
+It's an IQbservable provider that lets Rx queries be written on a C# client, have the query execute on the server and just the results streamed back.
 
 ```c#
 var options = new StreamDbContextOptionsBuilder()
     .UseEventStore("127.0.0.1:5001")
     .Options;
 
-    new EventStoreContext(options)
-        .FromAll()
-        .Where(e => e.EventType == "CustomerCreatedEvent")
-        .Where(e => new DateTime(2018, 3, 1) <= e.Created)
-        .TakeWhile(e => e.Created < new DateTime(2018, 4, 1))
-        .Select(e => e.Data)
-        .Subscribe(
-            onNext: s =>
-            {
-                var @event = JsonConvert.DeserializeObject<CustomerCreatedEvent>(s);
-                Console.WriteLine($"{@event.CustomerId}: {@event.Email}");
-            },
-            onError: e => Console.WriteLine("ERROR: " + e),
-            onCompleted: () => Console.WriteLine("DONE")
-        );
+new EventStoreContext(options)
+    .FromAll()
+    .Where(e => e.EventType == "CustomerCreatedEvent")
+    .Where(e => new DateTime(2018, 3, 1) <= e.Created)
+    .TakeWhile(e => e.Created < new DateTime(2018, 4, 1))
+    .Select(e => e.Data)
+    .Subscribe(
+        onNext: s =>
+        {
+            var @event = JsonConvert.DeserializeObject<CustomerCreatedEvent>(s);
+            Console.WriteLine($"{@event.CustomerId}: {@event.Email}");
+        },
+        onError: e => Console.WriteLine("ERROR: " + e),
+        onCompleted: () => Console.WriteLine("DONE")
+    );
 ```
 
 Just as IQueriable was a big deal for relational databases access, it follows that IQbservable has a similar potential for stream databases.
