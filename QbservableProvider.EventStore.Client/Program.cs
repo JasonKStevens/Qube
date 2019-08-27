@@ -43,17 +43,15 @@ namespace QbservableProvider.EventStore.Client
             new EventStoreContext(options)
                 .FromAll()
                 .Where(e => e.EventType == "CustomerCreatedEvent")
-                .Where(e => new DateTime(2018, 10, 1) <= e.Created)
-                .TakeWhile(e => e.Created < new DateTime(2018, 11, 1))
+                .Where(e => new DateTime(2018, 3, 1) <= e.Created)
+                .TakeWhile(e => e.Created < new DateTime(2018, 4, 1))
                 .Where(e => e.Data.Contains(".test@partpay.co.nz"))
-                //.Count()
-                //.Select(n => new GrpcEvent { EventNumber = n })
+                .Select(e => e.Data)
                 .Subscribe(
                     onNext: s =>
                     {
-                        var @event = JsonConvert.DeserializeObject<CustomerCreatedEvent>(s.Data);
+                        var @event = JsonConvert.DeserializeObject<CustomerCreatedEvent>(s);
                         Console.WriteLine($"{@event.CustomerId}: {@event.Email}");
-                        //Console.WriteLine($"Event Count: " + s.EventNumber);
                     },
                     onError: e => Console.WriteLine("ERROR: " + e),
                     onCompleted: () => Console.WriteLine("DONE")
