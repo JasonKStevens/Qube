@@ -1,0 +1,17 @@
+syntax = "proto3";
+option csharp_namespace = "Qube.Grpc";
+
+package Greet;
+
+service StreamService {
+  rpc QueryStreamAsync (QueryEnvelope) returns (stream EventEnvelope);
+}
+
+message QueryEnvelope {
+  string payload = 1;
+}
+
+message EventEnvelope {
+  string payload = 1;
+  string error = 2;
+}
