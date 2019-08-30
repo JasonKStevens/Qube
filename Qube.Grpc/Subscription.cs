@@ -5,6 +5,7 @@ using System;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using ResponseType = Qube.Grpc.ResponseEnvelope.Types.ResponseType;
 
 namespace Qube.Grpc
 {
@@ -13,7 +14,7 @@ namespace Qube.Grpc
         private readonly StreamDbContextOptions _options;
         private readonly CancellationTokenSource _cancelSource;
 
-        private AsyncServerStreamingCall<EventEnvelope> _streamingCall;
+        private AsyncServerStreamingCall<ResponseEnvelope> _streamingCall;
 
         internal Subscription(StreamDbContextOptions options)
         {
@@ -42,33 +43,50 @@ namespace Qube.Grpc
             {
                 try
                 {
-                    await ListenToResponseStream<T>(observer.OnNext, _cancelSource.Token);
+                    await ListenToResponseStream<T>(
+                        observer.OnNext,
+                        observer.OnCompleted,
+                        observer.OnError,
+                        _cancelSource.Token);
                 }
                 catch (Exception ex)
                 {
                     observer.OnError(ex);
-                    return;
                 }
-
-                observer.OnCompleted();
             };
         }
 
-        private async Task ListenToResponseStream<T>(Action<T> onNext, CancellationToken token)
+        private async Task ListenToResponseStream<T>(
+            Action<T> onNext,
+            Action onCompleted,
+            Action<Exception> onError,
+            CancellationToken token)
         {
             while (!token.IsCancellationRequested &&
                     await _streamingCall.ResponseStream.MoveNext(token))
             {
                 var @event = _streamingCall.ResponseStream.Current;
-                var payload = EnvelopeHelper.Unpack<T>(@event.Payload);
 
-                onNext(payload);
+                switch (@event.ResponseType)
+                {
+                    case ResponseType.Next:
+                        var payload = EnvelopeHelper.Unpack<T>(@event.Payload);
+                        onNext(payload);
+                        break;
+
+                    case ResponseType.Completed:
+                        onCompleted();
+                        return;
+
+                    case ResponseType.Error:
+                        var ex = EnvelopeHelper.Unpack<Exception>(@event.Payload);
+                        onError(ex);
+                        return;
+                }
             }
 
-            if (token.IsCancellationRequested)
-            {
-                throw new TaskCanceledException("Remote subscription was cancelled");
-            }
+            var message = token.IsCancellationRequested ? "Subscription was cancelled" : "Stream ended abruptly";
+            onError(new TaskCanceledException(message));
         }
 
         public void Dispose()

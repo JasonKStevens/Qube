@@ -4,12 +4,9 @@ namespace Qube.Grpc.Utils
 {
     public static class EnvelopeHelper
     {
-        public static EventEnvelope Pack(object payload)
+        public static string Pack(object payload)
         {
-            return new EventEnvelope
-            {
-                Payload = JsonConvert.SerializeObject(payload)
-            };
+            return JsonConvert.SerializeObject(payload);
         }
 
         public static T Unpack<T>(string payload)

@@ -4,14 +4,19 @@ option csharp_namespace = "Qube.Grpc";
 package Greet;
 
 service StreamService {
-  rpc QueryStreamAsync (QueryEnvelope) returns (stream EventEnvelope);
+  rpc QueryStreamAsync (QueryEnvelope) returns (stream ResponseEnvelope);
 }
 
 message QueryEnvelope {
   string payload = 1;
 }
 
-message EventEnvelope {
+message ResponseEnvelope {
   string payload = 1;
-  string error = 2;
+  enum ResponseType {
+    NEXT = 0;
+    COMPLETED = 1;
+    ERROR = 2;
+  }
+  ResponseType responseType = 2;
 }

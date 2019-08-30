@@ -23,71 +23,85 @@ namespace QbservableProvider.Grpc.Server
 
         public override async Task QueryStreamAsync(
             QueryEnvelope queryEnvelope,
-            IServerStreamWriter<EventEnvelope> responseStream,
+            IServerStreamWriter<ResponseEnvelope> responseStream,
             ServerCallContext callContext)
         {
             var qbservable = await BuildQbservableAsync(queryEnvelope.Payload, _subject, responseStream);
-            var @continue = true;
+            var done = false;
 
-            var sub = qbservable
-                .Subscribe(async e => {
-                    var @event = EnvelopeHelper.Pack(e);
-                    
-                    try
-                    {
-                        await responseStream.WriteAsync(@event);
-                    }
-                    catch (InvalidOperationException)  // TEMP: Quick cheat to determine client has disconnected
-                    {
-                        @continue = false;
-                    }
-                });
-
-            // TEMP: Simulate stream
-            while (@continue)
+            using (var sub = qbservable.Subscribe(
+                async e => await RespondNext(responseStream, e),
+                async ex => await RespondError(responseStream, ex.Message),
+                async () => await RespondCompleted(responseStream)))
             {
-                var @event = new Event
+                try
                 {
-                    Id = random.Next(0, 10).ToString(),
-                    Category = "Category" + random.Next(0, 3).ToString(),
-                    Body = new { SomeProp = "test" }
-                };
+                    while (!done)
+                    {
+                        var @event = new Event
+                        {
+                            Id = random.Next(0, 10).ToString(),
+                            Category = "Category" + random.Next(0, 3).ToString(),
+                            Body = new { SomeProp = "test" }
+                        };
+                        _subject.OnNext(@event);
 
-                _subject.OnNext(@event);
-                await Task.Delay(random.Next(0, 1000));
+                        await Task.Delay(random.Next(0, 500));
+                        done = random.Next(0, 20) == 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _subject.OnError(ex);
+                    return;
+                }
+
+                _subject.OnCompleted();
             }
-
-            sub.Dispose();
         }
 
-        private async Task SendNextToClient(
-            IServerStreamWriter<EventEnvelope> responseStream,
+        private async Task RespondNext(
+            IServerStreamWriter<ResponseEnvelope> responseStream,
             object payload)
         {
-            var eventEnvelope = new EventEnvelope
+            var responseEnvelope = new ResponseEnvelope
             {
-                Payload = JsonConvert.SerializeObject(payload)
+                Payload = EnvelopeHelper.Pack(payload),
+                ResponseType = ResponseEnvelope.Types.ResponseType.Next
             };
-            await SendEnvelopeToClient(responseStream, eventEnvelope);
+            await SendEnvelopeToClient(responseStream, responseEnvelope);
         }
 
-        private async Task SendErrorToClient(
-            IServerStreamWriter<EventEnvelope> responseStream,
-            string errorMessage
-        )
+        private async Task RespondCompleted(IServerStreamWriter<ResponseEnvelope> responseStream)
         {
-            var eventEnvelope = new EventEnvelope { Error = errorMessage };
-            await SendEnvelopeToClient(responseStream, eventEnvelope);
+            var responseEnvelope = new ResponseEnvelope
+            {
+                Payload = "",
+                ResponseType = ResponseEnvelope.Types.ResponseType.Completed
+            };
+            await SendEnvelopeToClient(responseStream, responseEnvelope);
         }
 
-        private async Task SendEnvelopeToClient(IServerStreamWriter<EventEnvelope> responseStream, EventEnvelope eventEnvelope)
+        private async Task RespondError(
+            IServerStreamWriter<ResponseEnvelope> responseStream,
+            string errorMessage)
+        {
+            var responseEnvelope = new ResponseEnvelope
+            {
+                Payload = errorMessage,
+                ResponseType = ResponseEnvelope.Types.ResponseType.Error
+            };
+            await SendEnvelopeToClient(responseStream, responseEnvelope);
+        }
+
+        private async Task SendEnvelopeToClient(IServerStreamWriter<ResponseEnvelope> responseStream, ResponseEnvelope ResponseEnvelope)
         {
             // TODO: Consider using a buffer - only one write can be pending at a time.
             await _writeLock.WaitAsync();
 
             try
             {
-                await responseStream.WriteAsync(eventEnvelope);
+                await responseStream.WriteAsync(ResponseEnvelope);
             }
             finally
             {
@@ -98,7 +112,7 @@ namespace QbservableProvider.Grpc.Server
         private async Task<IQbservable<object>> BuildQbservableAsync(
             string serializedRxQuery,
             Subject<Event> subject,
-            IServerStreamWriter<EventEnvelope> responseStream)
+            IServerStreamWriter<ResponseEnvelope> responseStream)
         {
             try
             {
@@ -115,7 +129,7 @@ namespace QbservableProvider.Grpc.Server
             }
             catch (Exception ex)
             {
-                await SendErrorToClient(responseStream, "Unsupported linq expression: " + ex.Message);
+                await RespondError(responseStream, "Unsupported linq expression: " + ex.Message);
                 return null;
             }
         }
