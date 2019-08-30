@@ -26,7 +26,7 @@ namespace QbservableProvider.Client
             //).Subscribe(e => Console.WriteLine(e));
 
             var options = new StreamDbContextOptionsBuilder()
-                .UseGrpcStream("http://127.0.0.1:5001")
+                .UseGrpcStream("127.0.0.1:5001")
                 .Options;
 
             new StreamDbContext<Event>(options)

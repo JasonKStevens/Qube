@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Qube.EventStore.Client.Temp
+namespace Qube.Core
 {
     public interface IDomainEvent
     {

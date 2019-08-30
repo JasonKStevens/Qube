@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using System.Reactive.Linq;
 using Qube.Core;
 using Newtonsoft.Json;
-using Qube.EventStore.Client.Temp;
 
 namespace Qube.EventStore.Client
 {
@@ -44,17 +43,30 @@ namespace Qube.EventStore.Client
                 .Where(e => e.EventType == "CustomerCreatedEvent")
                 .Where(e => new DateTime(2018, 3, 1) <= e.Created)
                 .TakeWhile(e => e.Created < new DateTime(2018, 4, 1))
-                .Select(e => e.Data)
+                .Select(e => new { Data = e.Data })
                 .Subscribe(
-                    onNext: s =>
+                    onNext: @event =>
                     {
-                        var @event = JsonConvert.DeserializeObject<CustomerCreatedEvent>(s);
-                        Console.WriteLine($"{@event.CustomerId}: {@event.Email}");
+                        // Console.WriteLine($"{@event.CustomerId}: {@event.Email}");
                     },
                     onError: e => Console.WriteLine("ERROR: " + e),
                     onCompleted: () => Console.WriteLine("DONE")
                 );
 
+            //new EventStoreContext(options)
+            //    .FromAll()
+            //    .GroupBy(e => e.EventStreamId.Split(new char[] { '-' })[0])
+            //    .SelectMany(g =>
+            //        g.Scan(
+            //            $"{g.Key}:0",
+            //            (s, e) => $"{e.EventStreamId.Split(new char[] { '-' })[0]}:{int.Parse(s.Split(new char[] { ':' })[1]) + 1}"
+            //        )
+            //    )
+            //    .Subscribe(
+            //        onNext: s => Console.WriteLine(s),
+            //        onError: e => Console.WriteLine("ERROR: " + e),
+            //        onCompleted: () => Console.WriteLine("DONE")
+            //    );
 
             while (!Console.KeyAvailable && Console.ReadKey(true).Key != ConsoleKey.Escape)
             {

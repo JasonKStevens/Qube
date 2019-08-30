@@ -21,7 +21,10 @@ namespace Qube.Core
         {
             ExpressionSerializer expressionSerializer = NewExpressionSerializer
             (
-                typeof(StringSplitOptions)
+                typeof(StringSplitOptions),
+                typeof(CustomerCreatedEvent),
+                typeof(BaseEvent),
+                typeof(IDomainEvent)
             );
 
             // TODO: Pull this expression stuff out
