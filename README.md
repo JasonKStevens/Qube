@@ -1,5 +1,5 @@
 # Qube
-[![Build Status](https://dev.azure.com/jasonkstevens/PuzzleBox/_apis/build/status/JasonKStevens.QbservableProvider?branchName=master)](https://dev.azure.com/jasonkstevens/PuzzleBox/_build/latest?definitionId=7&branchName=master)
+[![Build Status](https://dev.azure.com/jasonkstevens/PuzzleBox/_apis/build/status/JasonKStevens.Qube?branchName=master)](https://dev.azure.com/jasonkstevens/PuzzleBox/_build/latest?definitionId=8&branchName=master)
 
 This library is an experimental [Rx](https://github.com/dotnet/reactive) client for an [EventStore fork](https://github.com/JasonKStevens/EventStoreRx), but written to be general purpose.
 
