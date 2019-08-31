@@ -7,7 +7,7 @@ using RichardSzalay.MockHttp;
 using Qube.Core;
 using Qube.Grpc;
 
-namespace QbservableProvider.Test
+namespace Qube.Test
 {
     public class GRpcProviderFixture
     {

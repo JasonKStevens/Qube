@@ -2,9 +2,8 @@
 using System.Threading.Tasks;
 using System.Reactive.Linq;
 using Qube.Core;
-using Qube.Grpc;
 
-namespace QbservableProvider.Client
+namespace Qube.Grpc.Client
 {
     class Program
     {
@@ -30,14 +29,15 @@ namespace QbservableProvider.Client
                 .Options;
 
             new StreamDbContext(options)
-                .FromAll<Event>()
-                .OfType<CustomerCreatedEvent>()
+                .When<CustomerCreatedEvent>()
+                .Where(e => e.Email.EndsWith("@blah.com"))
                 .Subscribe
                 (
                     onNext: e => Console.WriteLine(e.CustomerId),
                     onError: ex => Console.WriteLine("ERROR: " + ex),
                     onCompleted: () => Console.WriteLine("COMPLETED")
                 );
+
             //new StreamDbContext<Event>(options)
             //    .FromAll()
             //    .GroupBy(e => e.Category)

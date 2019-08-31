@@ -38,20 +38,15 @@ namespace Qube.EventStore.Client
                 .UseEventStore("127.0.0.1:5001")
                 .Options;
 
-            new EventStoreContext(options)
-                .FromAll<Event>()
-                .Where(e => e.EventType == "CustomerCreatedEvent")
-                .Where(e => new DateTime(2018, 3, 1) <= e.Created)
-                .TakeWhile(e => e.Created < new DateTime(2018, 4, 1))
-                .Select(e => e.Data)
-                .Subscribe(
-                    onNext: s =>
-                    {
-                        var @event = JsonConvert.DeserializeObject<CustomerCreatedEvent>(s);
-                        Console.WriteLine($"{@event.CustomerId}: {@event.Email}");
-                    },
-                    onError: e => Console.WriteLine("ERROR: " + e),
-                    onCompleted: () => Console.WriteLine("DONE")
+            var es = new EventStoreContext(options);
+            
+            es.When<CustomerCreatedEvent>()
+                .Where(e => e.Email.EndsWith("@blah.com"))
+                .Subscribe
+                (
+                    onNext: e => Console.WriteLine(e.CustomerId),
+                    onError: ex => Console.WriteLine("ERROR: " + ex),
+                    onCompleted: () => Console.WriteLine("COMPLETED")
                 );
 
             //new EventStoreContext(options)

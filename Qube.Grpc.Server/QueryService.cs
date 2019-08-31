@@ -4,27 +4,42 @@ using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core;
-using QbservableProvider.Core;
+using Newtonsoft.Json;
 using Qube.Core;
-using Qube.Grpc;
+using Qube.Core.Utils;
 using Qube.Grpc.Utils;
 
-namespace QbservableProvider.Grpc.Server
+namespace Qube.Grpc.Server
 {
     public class QueryService : StreamService.StreamServiceBase
     {
         private static readonly Random random = new Random();
 
         private readonly SemaphoreSlim _writeLock = new SemaphoreSlim(1, 1);
-        private readonly Subject<Event> _subject = new Subject<Event>();
 
         public override async Task QueryStreamAsync(
             QueryEnvelope queryEnvelope,
             IServerStreamWriter<ResponseEnvelope> responseStream,
             ServerCallContext callContext)
         {
-            var queryExpression = SerializationHelper.DeserializeLinqExpression(queryEnvelope.Payload);
-            var qbservable = new ServerQueryObservable<Event, object>(_subject.AsQbservable(), queryExpression);
+            var subject = new Subject<object>();
+            ServerQueryObservable<object> qbservable;
+            Type sourceType;
+
+            try
+            {
+                var classDefinition = JsonConvert.DeserializeObject<PortableTypeDefinition>(queryEnvelope.ClassDefinition);
+                sourceType = new PortableTypeBuilder().BuildType(classDefinition);
+
+                var queryExpression = SerializationHelper.DeserializeLinqExpression(queryEnvelope.Payload);
+                qbservable = new ServerQueryObservable<object>(sourceType, subject.AsQbservable(), queryExpression);
+            }
+            catch (Exception ex)
+            {
+                await ClientOnError(responseStream, ex);
+                return;
+            }
+
             var isComplete = false;
             var isError = false;
             var eventCount = 0;
@@ -36,17 +51,12 @@ namespace QbservableProvider.Grpc.Server
             {
                 do
                 {
-                    _subject.OnNext(new Event
-                    {
-                        Id = random.Next(0, 10).ToString(),
-                        Category = "Category" + random.Next(0, 3).ToString(),
-                        Body = new CustomerCreatedEvent
-                        {
-                            CustomerId = Guid.NewGuid(),
-                            Email = "some-email@blah.com",
-                            PhoneNumber = "09-" + random.Next(0, 6)
-                        }
-                    });
+                    var @event = Activator.CreateInstance(sourceType);
+                    sourceType.GetProperty("CustomerId").SetValue(@event, Guid.NewGuid());
+                    sourceType.GetProperty("Email").SetValue(@event, "some-email@blah.com");
+                    sourceType.GetProperty("PhoneNumber").SetValue(@event, "09-" + random.Next(0, 6));
+
+                    subject.OnNext(@event);
 
                     await Task.Delay(random.Next(0, 500));
 
@@ -59,11 +69,11 @@ namespace QbservableProvider.Grpc.Server
 
                 if (isComplete)
                 {
-                    _subject.OnCompleted();
+                    subject.OnCompleted();
                 }
                 else if (isError)
                 {
-                    _subject.OnError(new Exception("Example error"));
+                    subject.OnError(new Exception("Example error"));
                 }
 
             }

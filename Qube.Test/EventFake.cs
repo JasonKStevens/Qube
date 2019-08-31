@@ -1,4 +1,4 @@
-﻿namespace QbservableProvider.Test
+﻿namespace Qube.Test
 {
     public class EventFake
     {
