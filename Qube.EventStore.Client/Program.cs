@@ -43,11 +43,12 @@ namespace Qube.EventStore.Client
                 .Where(e => e.EventType == "CustomerCreatedEvent")
                 .Where(e => new DateTime(2018, 3, 1) <= e.Created)
                 .TakeWhile(e => e.Created < new DateTime(2018, 4, 1))
-                .Select(e => new { Data = e.Data })
+                .Select(e => e.Data)
                 .Subscribe(
-                    onNext: @event =>
+                    onNext: s =>
                     {
-                        // Console.WriteLine($"{@event.CustomerId}: {@event.Email}");
+                        var @event = JsonConvert.DeserializeObject<CustomerCreatedEvent>(s);
+                        Console.WriteLine($"{@event.CustomerId}: {@event.Email}");
                     },
                     onError: e => Console.WriteLine("ERROR: " + e),
                     onCompleted: () => Console.WriteLine("DONE")

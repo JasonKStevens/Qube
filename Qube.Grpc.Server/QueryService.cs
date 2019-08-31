@@ -1,13 +1,10 @@
 using System;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core;
-using Newtonsoft.Json;
+using QbservableProvider.Core;
 using Qube.Core;
 using Qube.Grpc;
 using Qube.Grpc.Utils;
@@ -26,77 +23,84 @@ namespace QbservableProvider.Grpc.Server
             IServerStreamWriter<ResponseEnvelope> responseStream,
             ServerCallContext callContext)
         {
-            var qbservable = await BuildQbservableAsync(queryEnvelope.Payload, _subject, responseStream);
-            var done = false;
+            var queryExpression = SerializationHelper.DeserializeLinqExpression(queryEnvelope.Payload);
+            var qbservable = new ServerQueryObservable<Event, object>(_subject.AsQbservable(), queryExpression);
+
+            var isComplete = false;
+            var isError = false;
+            var eventCount = 0;
 
             using (var sub = qbservable.Subscribe(
-                async e => await RespondNext(responseStream, e),
-                async ex => await RespondError(responseStream, ex.Message),
-                async () => await RespondCompleted(responseStream)))
+                async e => await ClientOnNext(responseStream, e),
+                async ex => await ClientOnError(responseStream, ex),
+                async () => await ClientOnCompleted(responseStream)))
             {
-                try
+                do
                 {
-                    while (!done)
+                    _subject.OnNext(new Event
                     {
-                        var @event = new Event
-                        {
-                            Id = random.Next(0, 10).ToString(),
-                            Category = "Category" + random.Next(0, 3).ToString(),
-                            Body = new { SomeProp = "test" }
-                        };
-                        _subject.OnNext(@event);
+                        Id = random.Next(0, 10).ToString(),
+                        Category = "Category" + random.Next(0, 3).ToString(),
+                        Body = new { SomeProp = "test" }
+                    });
 
-                        await Task.Delay(random.Next(0, 500));
-                        done = random.Next(0, 20) == 0;
+                    await Task.Delay(random.Next(0, 500));
+
+                    if (eventCount++ > 5)
+                    {
+                        isComplete = random.Next(0, 20) == 0;
+                        isError = !isComplete && random.Next(0, 20) == 0;
                     }
-                }
-                catch (Exception ex)
+                } while (!isComplete && !isError);
+
+                if (isComplete)
                 {
-                    _subject.OnError(ex);
-                    return;
+                    _subject.OnCompleted();
+                }
+                else if (isError)
+                {
+                    _subject.OnError(new Exception("Example error"));
                 }
 
-                _subject.OnCompleted();
             }
         }
 
-        private async Task RespondNext(
+        private async Task ClientOnNext(
             IServerStreamWriter<ResponseEnvelope> responseStream,
             object payload)
         {
-            var responseEnvelope = new ResponseEnvelope
+            await SendEnvelopeToClient(responseStream, new ResponseEnvelope
             {
                 Payload = EnvelopeHelper.Pack(payload),
                 ResponseType = ResponseEnvelope.Types.ResponseType.Next
-            };
-            await SendEnvelopeToClient(responseStream, responseEnvelope);
+            });
         }
 
-        private async Task RespondCompleted(IServerStreamWriter<ResponseEnvelope> responseStream)
+        private async Task ClientOnCompleted(IServerStreamWriter<ResponseEnvelope> responseStream)
         {
-            var responseEnvelope = new ResponseEnvelope
+            await SendEnvelopeToClient(responseStream, new ResponseEnvelope
             {
                 Payload = "",
                 ResponseType = ResponseEnvelope.Types.ResponseType.Completed
-            };
-            await SendEnvelopeToClient(responseStream, responseEnvelope);
+            });
         }
 
-        private async Task RespondError(
+        private async Task ClientOnError(
             IServerStreamWriter<ResponseEnvelope> responseStream,
-            string errorMessage)
+            Exception ex)
         {
-            var responseEnvelope = new ResponseEnvelope
+            await SendEnvelopeToClient(responseStream, new ResponseEnvelope
             {
-                Payload = errorMessage,
+                Payload = EnvelopeHelper.Pack(ex),
                 ResponseType = ResponseEnvelope.Types.ResponseType.Error
-            };
-            await SendEnvelopeToClient(responseStream, responseEnvelope);
+            });
         }
 
-        private async Task SendEnvelopeToClient(IServerStreamWriter<ResponseEnvelope> responseStream, ResponseEnvelope ResponseEnvelope)
+        private async Task SendEnvelopeToClient(
+            IServerStreamWriter<ResponseEnvelope> responseStream,
+            ResponseEnvelope ResponseEnvelope)
         {
-            // TODO: Consider using a buffer - only one write can be pending at a time.
+            // gRpc - only one write can be pending at a time.
             await _writeLock.WaitAsync();
 
             try
@@ -107,48 +111,6 @@ namespace QbservableProvider.Grpc.Server
             {
                 _writeLock.Release();
             }
-        }
-
-        private async Task<IQbservable<object>> BuildQbservableAsync(
-            string serializedRxQuery,
-            Subject<Event> subject,
-            IServerStreamWriter<ResponseEnvelope> responseStream)
-        {
-            try
-            {
-                var expression = SerializationHelper.DeserializeLinqExpression(serializedRxQuery);
-                var lambdaExpression = (LambdaExpression)expression;
-
-                var castLambdaExpression = CastGenericItemToObject(lambdaExpression);
-
-                var qbservable = castLambdaExpression
-                    .Compile()
-                    .DynamicInvoke(subject.AsQbservable());
-
-                return (IQbservable<object>)qbservable;
-            }
-            catch (Exception ex)
-            {
-                await RespondError(responseStream, "Unsupported linq expression: " + ex.Message);
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Call .Cast<object>() Rx querie's lambda expression to cast result type to "known" object.
-        /// </summary>
-        private static LambdaExpression CastGenericItemToObject(LambdaExpression lambdaExpression)
-        {
-            var castMethod = typeof(Qbservable)
-                .GetMethods(BindingFlags.Static | BindingFlags.Public)
-                .Where(mi => mi.Name == "Cast")
-                .Single()
-                .MakeGenericMethod(typeof(object));
-
-            var methodCall = Expression.Call(null, castMethod, lambdaExpression.Body);
-            var castLambdaExpression = Expression.Lambda(methodCall, lambdaExpression.Parameters);
-
-            return castLambdaExpression;
         }
     }
 }

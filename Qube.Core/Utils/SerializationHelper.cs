@@ -34,10 +34,10 @@ namespace Qube.Core
             return serializedLambda;
         }
 
-        public static Expression DeserializeLinqExpression(string expressionString)
+        public static LambdaExpression DeserializeLinqExpression(string expressionString)
         {
             var serializer = new ExpressionSerializer(new JsonSerializer());
-            var expression = serializer.DeserializeText(expressionString);
+            var expression = (LambdaExpression) serializer.DeserializeText(expressionString);
             return expression;
         }
     }

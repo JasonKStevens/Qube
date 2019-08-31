@@ -1,7 +1,6 @@
 ﻿using Qube.Core;
 using System;
 using System.Linq.Expressions;
-using System.Net.Http;
 using System.Reactive.Linq;
 
 namespace Qube.EventStore

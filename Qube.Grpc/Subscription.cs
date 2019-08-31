@@ -9,20 +9,20 @@ using ResponseType = Qube.Grpc.ResponseEnvelope.Types.ResponseType;
 
 namespace Qube.Grpc
 {
-    internal class Subscription : IDisposable
+    public class Subscription : IDisposable
     {
         private readonly StreamDbContextOptions _options;
         private readonly CancellationTokenSource _cancelSource;
 
         private AsyncServerStreamingCall<ResponseEnvelope> _streamingCall;
 
-        internal Subscription(StreamDbContextOptions options)
+        public Subscription(StreamDbContextOptions options)
         {
             _options = options;
             _cancelSource = new CancellationTokenSource();
         }
 
-        internal void Connect<TIn, TOut>(Expression expression, IObserver<TOut> observer)
+        public void Connect<TIn, TOut>(Expression expression, IObserver<TOut> observer)
         {
             var seralizedExpression = SerializationHelper.SerializeLinqExpression<TIn, TOut>(expression);
 

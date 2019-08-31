@@ -1,11 +1,12 @@
 ﻿using System;
 
-namespace EventStore.Transport.Grpc
+namespace Qube.EventStore
 {
     /// <summary>
-    /// Dto to send back to client
+    /// Representation of the event record that the client qbservable sees
+    /// and queries over.
     /// </summary>
-    public class GrpcEvent
+    public class Event
     {
         /// <summary>
         /// The Event Stream that this event belongs to
