@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reactive.Linq;
+using Qube.Core.Utils;
 
 namespace Qube.Core
 {
@@ -21,7 +22,7 @@ namespace Qube.Core
 
         public IQbservable<TIn> CreateStream<TIn>()
         {
-            return (IQbservable<TIn>) _streamFactory(this, typeof(TIn));
+            return (IQbservable<TIn>)_streamFactory(this, typeof(TIn));
         }
     }
 }

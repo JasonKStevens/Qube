@@ -7,7 +7,7 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Qube.InMemory;
 
-namespace QbservableProvider.Test
+namespace Qube.Test
 {
     public class QueryFixture : ReactiveTest
     {

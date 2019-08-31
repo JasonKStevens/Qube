@@ -1,9 +1,9 @@
 ﻿namespace Qube.Grpc
 {
-    public class Event
+    public class TestEvent<T>
     {
         public string Id { get; set; }
         public string Category { get; set; }
-        public dynamic Body { get; set; }
+        public T Body { get; set; }
     }
 }

@@ -1,5 +1,7 @@
 ﻿using Grpc.Core;
+using Newtonsoft.Json;
 using Qube.Core;
+using Qube.Core.Utils;
 using Qube.Grpc.Utils;
 using System;
 using System.Linq.Expressions;
@@ -29,7 +31,14 @@ namespace Qube.Grpc
             Channel channel = new Channel(_options.ConnectionString, ChannelCredentials.Insecure);
             var client = new StreamService.StreamServiceClient(channel.CreateCallInvoker());
 
-            var queryEnvelope = new QueryEnvelope { Payload = seralizedExpression };
+            var classDefinition = new PortableTypeDefiner().BuildDefinition(typeof(TIn));
+
+            var queryEnvelope = new QueryEnvelope
+            {
+                Payload = seralizedExpression,
+                ClassDefinition = JsonConvert.SerializeObject(classDefinition)
+            };
+
             _streamingCall = client.QueryStreamAsync(queryEnvelope);
 
             // TODO: No need for one thread per subscription - this can be made more efficient

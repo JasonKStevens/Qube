@@ -12,14 +12,15 @@ namespace Qube.Core
             _options = options;
         }
 
+        // TODO: Base event type for All or object?
         public IQbservable<T> FromAll<T>()
         {
             return _options.CreateStream<T>();
         }
 
-        public IQbservable<T> FromCategory<T>(string categoryName)
+        public IQbservable<T> When<T>()
         {
-            throw new NotImplementedException();
+            return _options.CreateStream<T>();
         }
 
         public IQbservable<T> FromCategories<T>(params string[] categoryNames)

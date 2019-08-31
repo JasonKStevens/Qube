@@ -1,27 +1,29 @@
-using Qube.Core;
 using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reactive.Linq;
 using System.Reflection;
 
-namespace QbservableProvider.Core
+namespace Qube.Core
 {
     /// <summary>
     /// An observable with the query expression compiled over the given source qbservable.
     /// </summary>
-    /// <typeparam name="TIn">The base event type of the subject.</typeparam>
-    public class ServerQueryObservable<TIn, TOut> : IObservable<TOut>
+    public class ServerQueryObservable<TOut> : IObservable<TOut>
     {
         private readonly IQbservable<TOut> _qbservable;
 
         public ServerQueryObservable(
-            IQbservable<TIn> sourceQbservable,
+            Type sourceType,
+            IQbservable<object> sourceQbservable,
             LambdaExpression queryExpression)
         {
+            var castMethod = GetCastMethod(sourceType);
+            var castQbservable = castMethod.Invoke(null, new [] { sourceQbservable });
+            
             _qbservable = (IQbservable<TOut>) CastStreamToOutputType(queryExpression)
                 .Compile()
-                .DynamicInvoke(sourceQbservable);
+                .DynamicInvoke(castQbservable);
         }
 
         public IDisposable Subscribe(IObserver<TOut> observer)
@@ -34,16 +36,21 @@ namespace QbservableProvider.Core
         /// </summary>
         private static LambdaExpression CastStreamToOutputType(LambdaExpression lambdaExpression)
         {
-            var castMethod = typeof(Qbservable)
-                .GetMethods(BindingFlags.Static | BindingFlags.Public)
-                .Where(mi => mi.Name == "Cast")
-                .Single()
-                .MakeGenericMethod(typeof(TOut));
+            var castMethod = GetCastMethod(typeof(TOut));
 
             var methodCall = Expression.Call(null, castMethod, lambdaExpression.Body);
             var castLambdaExpression = Expression.Lambda(methodCall, lambdaExpression.Parameters);
 
             return castLambdaExpression;
+        }
+
+        private static MethodInfo GetCastMethod(Type type)
+        {
+            return typeof(Qbservable)
+                .GetMethods(BindingFlags.Static | BindingFlags.Public)
+                .Where(mi => mi.Name == "Cast")
+                .Single()
+                .MakeGenericMethod(type);
         }
     }
 }

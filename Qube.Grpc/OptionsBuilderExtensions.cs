@@ -8,11 +8,11 @@ namespace Qube.Grpc
         public static StreamDbContextOptionsBuilder UseGrpcStream(this StreamDbContextOptionsBuilder builder, string url)
         {
             builder.Options.SetConnectionString(url);
-            builder.Options.SetStreamFactory(CreateStream);
+            builder.Options.SetStreamFactory(StreamFactory);
             return builder;
         }
 
-        private static object CreateStream(StreamDbContextOptions options, Type genericParam)
+        private static object StreamFactory(StreamDbContextOptions options, Type genericParam)
         {
             var stream = typeof(Stream<>)
                 .MakeGenericType(new[] { genericParam })

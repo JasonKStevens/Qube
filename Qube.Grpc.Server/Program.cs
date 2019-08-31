@@ -1,9 +1,8 @@
 using Grpc.Core;
-using Qube.Grpc;
 using System;
 using GrpcServer = Grpc.Core.Server;
 
-namespace QbservableProvider.Grpc.Server
+namespace Qube.Grpc.Server
 {
     public class Program
     {

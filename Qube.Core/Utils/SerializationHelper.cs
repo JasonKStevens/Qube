@@ -13,18 +13,16 @@ namespace Qube.Core
         public static ExpressionSerializer NewExpressionSerializer(params Type[] knownTypes)
         {
             var expressionSerializer = new ExpressionSerializer(JsonSerializer);
-            expressionSerializer.AddKnownType(typeof(StringSplitOptions));  // TODO: Have this come in from above
+            expressionSerializer.AddKnownTypes(knownTypes);
             return expressionSerializer;
         }
 
         public static string SerializeLinqExpression<TIn, TOut>(Expression expression)
         {
-            ExpressionSerializer expressionSerializer = NewExpressionSerializer
+            // TODO: Not sure how useful but if so have it come in from above
+            var expressionSerializer = NewExpressionSerializer
             (
-                typeof(StringSplitOptions),
-                typeof(CustomerCreatedEvent),
-                typeof(BaseEvent),
-                typeof(IDomainEvent)
+                typeof(StringSplitOptions)
             );
 
             // TODO: Pull this expression stuff out
