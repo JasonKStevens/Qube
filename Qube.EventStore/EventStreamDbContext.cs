@@ -2,7 +2,7 @@
 
 namespace Qube.Core
 {
-    public class EventStoreContext : StreamDbContext<Event>
+    public class EventStoreContext : StreamDbContext
     {
         public EventStoreContext(StreamDbContextOptions options) : base(options)
         {

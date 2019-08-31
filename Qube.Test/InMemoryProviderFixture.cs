@@ -9,7 +9,7 @@ namespace QbservableProvider.Test
 {
     public class InMemoryProviderFixture
     {
-        private StreamDbContext<string> _sut;
+        private StreamDbContext _sut;
         private Subject<string> _subject;
         private IDisposable _sub;
 
@@ -22,7 +22,7 @@ namespace QbservableProvider.Test
                 .UseInMemoryStream(_subject.AsQbservable())
                 .Options;
 
-            _sut = new StreamDbContext<string>(options);
+            _sut = new StreamDbContext(options);
         }
 
         [TearDown]
@@ -35,7 +35,7 @@ namespace QbservableProvider.Test
         public void should_create_stream()
         {
             // Act
-            var stream = _sut.FromAll();
+            var stream = _sut.FromAll<string>();
 
             // Assert
             Assert.That(stream, Is.Not.Null);
@@ -47,7 +47,7 @@ namespace QbservableProvider.Test
             // Arrange
             string value = null;
 
-            _sub = _sut.FromAll()
+            _sub = _sut.FromAll<string>()
                 .Subscribe(s => value = s);
 
             // Act
@@ -63,7 +63,7 @@ namespace QbservableProvider.Test
             // Arrange
             string value = null;
 
-            _sub = _sut.FromAll()
+            _sub = _sut.FromAll<string>()
                 .Where(x => x != null)
                 .Subscribe(s => value = s);
 
@@ -80,7 +80,7 @@ namespace QbservableProvider.Test
             // Arrange
             int eventCount = 0;
 
-            _sub = _sut.FromAll()
+            _sub = _sut.FromAll<string>()
                 .Where(x => x != null)
                 .Subscribe(x => eventCount++);
 
@@ -98,7 +98,7 @@ namespace QbservableProvider.Test
             // Arrange
             int result = 0;
 
-            _sub = _sut.FromAll()
+            _sub = _sut.FromAll<string>()
                 .Select(x => int.Parse(x))
                 .Subscribe(x => result = x);
 
@@ -115,7 +115,7 @@ namespace QbservableProvider.Test
             // Arrange
             var completed = false;
 
-            _sub = _sut.FromAll()
+            _sub = _sut.FromAll<string>()
                 .Select(x => int.Parse(x))
                 .Subscribe(_ => {}, () => completed = true);
 
@@ -133,7 +133,7 @@ namespace QbservableProvider.Test
             Exception actualError = null;
             var expectedError = new Exception();
 
-            _sub = _sut.FromAll()
+            _sub = _sut.FromAll<string>()
                 .Select(x => int.Parse(x))
                 .Subscribe(_ => {}, ex => actualError = ex);
 

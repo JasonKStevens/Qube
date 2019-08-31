@@ -25,7 +25,6 @@ namespace QbservableProvider.Grpc.Server
         {
             var queryExpression = SerializationHelper.DeserializeLinqExpression(queryEnvelope.Payload);
             var qbservable = new ServerQueryObservable<Event, object>(_subject.AsQbservable(), queryExpression);
-
             var isComplete = false;
             var isError = false;
             var eventCount = 0;
@@ -41,7 +40,12 @@ namespace QbservableProvider.Grpc.Server
                     {
                         Id = random.Next(0, 10).ToString(),
                         Category = "Category" + random.Next(0, 3).ToString(),
-                        Body = new { SomeProp = "test" }
+                        Body = new CustomerCreatedEvent
+                        {
+                            CustomerId = Guid.NewGuid(),
+                            Email = "some-email@blah.com",
+                            PhoneNumber = "09-" + random.Next(0, 6)
+                        }
                     });
 
                     await Task.Delay(random.Next(0, 500));

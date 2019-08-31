@@ -39,7 +39,7 @@ namespace Qube.EventStore.Client
                 .Options;
 
             new EventStoreContext(options)
-                .FromAll()
+                .FromAll<Event>()
                 .Where(e => e.EventType == "CustomerCreatedEvent")
                 .Where(e => new DateTime(2018, 3, 1) <= e.Created)
                 .TakeWhile(e => e.Created < new DateTime(2018, 4, 1))

@@ -5,14 +5,13 @@ using System;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using Qube.Core;
 using Qube.InMemory;
 
 namespace QbservableProvider.Test
 {
     public class QueryFixture : ReactiveTest
     {
-        private StreamDbContext<EventFake> _sut;
+        private StreamDbContext _sut;
         private IDisposable _subscription;
         private TestScheduler _scheduler;
         private Subject<EventFake> _subject;
@@ -28,7 +27,7 @@ namespace QbservableProvider.Test
                 .UseInMemoryStream(_subject)
                 .Options;
 
-            _sut = new StreamDbContext<EventFake>(options);
+            _sut = new StreamDbContext(options);
         }
 
         [TearDown]
@@ -69,7 +68,7 @@ namespace QbservableProvider.Test
             });
 
 
-            _subscription = _sut.FromAll()
+            _subscription = _sut.FromAll<EventFake>()
                 .Subscribe(
                     e => Assert.Pass(),
                     () => { }

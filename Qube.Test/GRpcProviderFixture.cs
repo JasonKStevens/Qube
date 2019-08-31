@@ -11,7 +11,7 @@ namespace QbservableProvider.Test
 {
     public class GRpcProviderFixture
     {
-        private StreamDbContext<string> _sut;
+        private StreamDbContext _sut;
         private Subject<string> _subject;
         private MockHttpMessageHandler _mockHttp;
         private IDisposable _sub;
@@ -28,7 +28,7 @@ namespace QbservableProvider.Test
                 .UseGrpcStream("http://some-host")
                 .Options;
 
-            _sut = new StreamDbContext<string>(options);
+            _sut = new StreamDbContext(options);
         }
 
         [TearDown]
