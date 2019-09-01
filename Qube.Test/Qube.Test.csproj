@@ -18,7 +18,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Qube.Core\Qube.Core.csproj" />
-    <ProjectReference Include="..\Qube.EventStore\Qube.EventStore.csproj" />
     <ProjectReference Include="..\Qube.Grpc\Qube.Grpc.csproj" />
     <ProjectReference Include="..\Qube.InMemory\Qube.InMemory.csproj" />
   </ItemGroup>
