@@ -1,7 +1,6 @@
 using System;
 using System.Net.Http;
 using System.Reactive.Subjects;
-using Moq;
 using NUnit.Framework;
 using RichardSzalay.MockHttp;
 using Qube.Core;
@@ -9,7 +8,7 @@ using Qube.Grpc;
 
 namespace Qube.Test
 {
-    public class GRpcProviderFixture
+    public class GrpcProviderFixture
     {
         private StreamDbContext _sut;
         private Subject<string> _subject;

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
@@ -22,41 +23,39 @@ namespace Qube.Grpc.Server
             IServerStreamWriter<ResponseEnvelope> responseStream,
             ServerCallContext callContext)
         {
-            var subject = new Subject<object>();
-            ServerQueryObservable<object> qbservable;
-            Type sourceType;
-
             try
             {
-                var classDefinition = JsonConvert.DeserializeObject<PortableTypeDefinition>(queryEnvelope.ClassDefinition);
-                sourceType = new PortableTypeBuilder().BuildType(classDefinition);
-
-                var queryExpression = SerializationHelper.DeserializeLinqExpression(queryEnvelope.Payload);
-                qbservable = new ServerQueryObservable<object>(sourceType, subject.AsQbservable(), queryExpression);
+                using (var broker = new GrpcBroker(queryEnvelope))
+                {
+                    await Run(broker, responseStream);
+                }
             }
             catch (Exception ex)
             {
                 await ClientOnError(responseStream, ex);
-                return;
+                throw;
             }
+        }
 
+        private async Task Run(GrpcBroker broker, IServerStreamWriter<ResponseEnvelope> responseStream)
+        {
             var isComplete = false;
             var isError = false;
             var eventCount = 0;
 
-            using (var sub = qbservable.Subscribe(
+            using (var sub = broker.Observable.Subscribe(
                 async e => await ClientOnNext(responseStream, e),
                 async ex => await ClientOnError(responseStream, ex),
                 async () => await ClientOnCompleted(responseStream)))
             {
                 do
                 {
-                    var @event = Activator.CreateInstance(sourceType);
-                    sourceType.GetProperty("CustomerId").SetValue(@event, Guid.NewGuid());
-                    sourceType.GetProperty("Email").SetValue(@event, "some-email@blah.com");
-                    sourceType.GetProperty("PhoneNumber").SetValue(@event, "09-" + random.Next(0, 6));
+                    var @event = Activator.CreateInstance(broker.SourceType);
+                    //sourceType.GetProperty("CustomerId").SetValue(@event, Guid.NewGuid());
+                    //sourceType.GetProperty("Email").SetValue(@event, "some-email@blah.com");
+                    //sourceType.GetProperty("PhoneNumber").SetValue(@event, "09-" + random.Next(0, 6));
 
-                    subject.OnNext(@event);
+                    broker.Subject.OnNext(@event);
 
                     await Task.Delay(random.Next(0, 500));
 
@@ -69,13 +68,12 @@ namespace Qube.Grpc.Server
 
                 if (isComplete)
                 {
-                    subject.OnCompleted();
+                    broker.Subject.OnCompleted();
                 }
                 else if (isError)
                 {
-                    subject.OnError(new Exception("Example error"));
+                    broker.Subject.OnError(new Exception("Example error"));
                 }
-
             }
         }
 
@@ -85,8 +83,9 @@ namespace Qube.Grpc.Server
         {
             await SendEnvelopeToClient(responseStream, new ResponseEnvelope
             {
+                PayloadType = payload.GetType().FullName,
                 Payload = EnvelopeHelper.Pack(payload),
-                ResponseType = ResponseEnvelope.Types.ResponseType.Next
+                RxMethod = ResponseEnvelope.Types.RxMethod.Next
             });
         }
 
@@ -94,8 +93,9 @@ namespace Qube.Grpc.Server
         {
             await SendEnvelopeToClient(responseStream, new ResponseEnvelope
             {
+                PayloadType = "",
                 Payload = "",
-                ResponseType = ResponseEnvelope.Types.ResponseType.Completed
+                RxMethod = ResponseEnvelope.Types.RxMethod.Completed
             });
         }
 
@@ -105,8 +105,9 @@ namespace Qube.Grpc.Server
         {
             await SendEnvelopeToClient(responseStream, new ResponseEnvelope
             {
+                PayloadType = ex.GetType().FullName,
                 Payload = EnvelopeHelper.Pack(ex),
-                ResponseType = ResponseEnvelope.Types.ResponseType.Error
+                RxMethod = ResponseEnvelope.Types.RxMethod.Error
             });
         }
 

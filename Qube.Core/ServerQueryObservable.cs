@@ -18,12 +18,12 @@ namespace Qube.Core
             IQbservable<object> sourceQbservable,
             LambdaExpression queryExpression)
         {
-            var castMethod = GetCastMethod(sourceType);
-            var castQbservable = castMethod.Invoke(null, new [] { sourceQbservable });
-            
-            _qbservable = (IQbservable<TOut>) CastStreamToOutputType(queryExpression)
+            var castSourceQbservable = GetCastMethod(sourceType)
+                .Invoke(null, new[] { sourceQbservable });
+
+            _qbservable = (IQbservable<TOut>)CastStreamToOutputType(queryExpression)
                 .Compile()
-                .DynamicInvoke(castQbservable);
+                .DynamicInvoke(castSourceQbservable);
         }
 
         public IDisposable Subscribe(IObserver<TOut> observer)

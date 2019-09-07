@@ -9,15 +9,17 @@ service StreamService {
 
 message QueryEnvelope {
   string payload = 1;
-  string classDefinition = 2;
+  string sourceTypeName = 2;
+  string registeredTypes = 3;
 }
 
 message ResponseEnvelope {
   string payload = 1;
-  enum ResponseType {
+  string payloadType = 2;
+  enum RxMethod {
     NEXT = 0;
     COMPLETED = 1;
     ERROR = 2;
   }
-  ResponseType responseType = 2;
+  RxMethod rxMethod = 3;
 }

@@ -1,5 +1,6 @@
 ﻿using Serialize.Linq.Serializers;
 using System;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reactive.Linq;
 using JsonSerializer = Serialize.Linq.Serializers.JsonSerializer;
@@ -17,13 +18,9 @@ namespace Qube.Core
             return expressionSerializer;
         }
 
-        public static string SerializeLinqExpression<TIn, TOut>(Expression expression)
+        public static string SerializeLinqExpression<TIn, TOut>(Expression expression, params Type[] knownTypes)
         {
-            // TODO: Not sure how useful but if so have it come in from above
-            var expressionSerializer = NewExpressionSerializer
-            (
-                typeof(StringSplitOptions)
-            );
+            var expressionSerializer = NewExpressionSerializer(knownTypes);
 
             // TODO: Pull this expression stuff out
             var parameter = Expression.Parameter(typeof(IQbservable<TIn>), "o");

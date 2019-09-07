@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\PartPay.Common\PartPay.Common.csproj" />
     <ProjectReference Include="..\Qube.Core\Qube.Core.csproj" />
     <ProjectReference Include="..\Qube.EventStore\Qube.EventStore.csproj" />
   </ItemGroup>

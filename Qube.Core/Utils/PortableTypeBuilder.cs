@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -11,31 +13,76 @@ namespace Qube.Core.Utils
     /// </summary>
     public class PortableTypeBuilder
     {
+        private static IDictionary<string, Type> _typeCache = new Dictionary<string, Type>();
+
         public Type BuildType(PortableTypeDefinition typeDefinition)
         {
-            var typeBuilder = CreateTypeBuilder(typeDefinition);
+            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName(Guid.NewGuid().ToString()), AssemblyBuilderAccess.Run);
+            var moduleBuilder = assemblyBuilder.DefineDynamicModule(typeDefinition.ModuleName);
 
-            AddConstructor(typeBuilder);
+            if (typeDefinition.IsEnum)
+            {
+                var enumType = CreateEnumType(moduleBuilder, typeDefinition);
+                return enumType;
+            }
+
+            var typeBuilder = CreateTypeBuilder(moduleBuilder, typeDefinition);
+
+            if (!typeBuilder.IsInterface)
+            {
+                AddConstructor(typeBuilder);
+            }
+                
             AddProperties(typeBuilder, typeDefinition.Properties);
-            var type = CreateType(typeBuilder);
+            var type = typeBuilder.CreateTypeInfo().AsType();
+            
+            _typeCache[type.FullName] = type;
 
             return type;
         }
 
-        private TypeBuilder CreateTypeBuilder(PortableTypeDefinition typeDefinition)
+        public Type[] BuildTypes(PortableTypeDefinition[] typeDefinitions)
         {
-            var assemblyName = new AssemblyName(typeDefinition.AssemblyName);
-            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
-            var moduleBuilder = assemblyBuilder.DefineDynamicModule(typeDefinition.ModuleName);
+            return typeDefinitions.Select(BuildType).ToArray();
+        }
 
-            var typeBuilder = moduleBuilder.DefineType(typeDefinition.ClassName,
+        private Type CreateEnumType(ModuleBuilder moduleBuilder, PortableTypeDefinition typeDefinition)
+        {
+            var enumBuilder = moduleBuilder.DefineEnum(typeDefinition.ClassName, TypeAttributes.Public, typeof(int));
+
+            for (int i = 0; i < typeDefinition.EnumNames.Length; i++)
+            {
+                enumBuilder.DefineLiteral(typeDefinition.EnumNames[i], typeDefinition.EnumValues[i]);
+            }
+
+            return enumBuilder.CreateTypeInfo().AsType();
+        }
+
+        private TypeBuilder CreateTypeBuilder(ModuleBuilder moduleBuilder, PortableTypeDefinition typeDefinition)
+        {
+            var baseType = GetType(typeDefinition.BaseClassName);
+
+            var typeAttributes =
                 TypeAttributes.Public |
-                TypeAttributes.Class |
-                TypeAttributes.AutoClass |
-                TypeAttributes.AnsiClass |
                 TypeAttributes.BeforeFieldInit |
-                TypeAttributes.AutoLayout,
-                null);
+                TypeAttributes.AutoLayout |
+                TypeAttributes.Serializable;
+
+            if (typeDefinition.IsAbstract)
+            {
+                typeAttributes |= TypeAttributes.Abstract;
+            }
+            
+            if (typeDefinition.IsInterface)
+            {
+                typeAttributes |= TypeAttributes.Interface;
+            }
+            else
+            {
+                typeAttributes |= TypeAttributes.Class | TypeAttributes.AutoClass | TypeAttributes.AnsiClass;
+            }
+
+            var typeBuilder = moduleBuilder.DefineType(typeDefinition.ClassName, typeAttributes, baseType);
             return typeBuilder;
         }
 
@@ -48,43 +95,46 @@ namespace Qube.Core.Utils
         {
             foreach (var property in properties)
             {
-                CreateProperty(typeBuilder, property.Name, property.Type);
+                var propertyType = GetType(property.TypeName);
+                CreateProperty(typeBuilder, property.Name, propertyType);
             }
-        }
-
-        private Type CreateType(TypeBuilder typeBuilder)
-        {
-            return typeBuilder.CreateTypeInfo().AsType();
         }
 
         private static void CreateProperty(TypeBuilder tb, string propertyName, Type propertyType)
         {
             var fieldBuilder = tb.DefineField("_" + propertyName, propertyType, FieldAttributes.Private);
-
             var propertyBuilder = tb.DefineProperty(propertyName, PropertyAttributes.HasDefault, propertyType, null);
-            var getMethodBuilder = tb.DefineMethod("get_" + propertyName, MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig, propertyType, Type.EmptyTypes);
-            var getIl = getMethodBuilder.GetILGenerator();
+
+            // Getter
+            var getter = tb.DefineMethod("get_" + propertyName, MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig, propertyType, Type.EmptyTypes);
+            var getIl = getter.GetILGenerator();
 
             getIl.Emit(OpCodes.Ldarg_0);
             getIl.Emit(OpCodes.Ldfld, fieldBuilder);
             getIl.Emit(OpCodes.Ret);
 
-            var setMethodBuilder = tb.DefineMethod("set_" + propertyName, MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig, null, new[] { propertyType });
-            var setIl = setMethodBuilder.GetILGenerator();
-            var modifyProperty = setIl.DefineLabel();
-            var exitSet = setIl.DefineLabel();
+            propertyBuilder.SetGetMethod(getter);
 
-            setIl.MarkLabel(modifyProperty);
+            // Setter
+            var setter = tb.DefineMethod("set_" + propertyName, MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig, null, new[] { propertyType });
+            var setIl = setter.GetILGenerator();
+
             setIl.Emit(OpCodes.Ldarg_0);
             setIl.Emit(OpCodes.Ldarg_1);
             setIl.Emit(OpCodes.Stfld, fieldBuilder);
-
-            setIl.Emit(OpCodes.Nop);
-            setIl.MarkLabel(exitSet);
             setIl.Emit(OpCodes.Ret);
 
-            propertyBuilder.SetGetMethod(getMethodBuilder);
-            propertyBuilder.SetSetMethod(setMethodBuilder);
+            propertyBuilder.SetSetMethod(setter);
+        }
+
+        private static Type GetType(string typeName)
+        {
+            if (typeName == null)
+            {
+                return null;
+            }
+
+            return _typeCache.ContainsKey(typeName) ? _typeCache[typeName] : Type.GetType(typeName);
         }
     }
 }

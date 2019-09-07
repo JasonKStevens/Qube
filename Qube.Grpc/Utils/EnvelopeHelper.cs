@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 
 namespace Qube.Grpc.Utils
 {
@@ -9,11 +10,11 @@ namespace Qube.Grpc.Utils
             return JsonConvert.SerializeObject(payload);
         }
 
-        public static T Unpack<T>(string payload)
+        public static T Unpack<T>(string payload, Type type = null)
         {
             return typeof(T).Name.Contains("AnonymousType") ?
                 JsonConvert.DeserializeAnonymousType(payload, default(T)) :
-                JsonConvert.DeserializeObject<T>(payload);
+                type != null ? (T) JsonConvert.DeserializeObject(payload, type) : JsonConvert.DeserializeObject<T>(payload);
         }
     }
 }

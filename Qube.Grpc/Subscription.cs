@@ -4,10 +4,11 @@ using Qube.Core;
 using Qube.Core.Utils;
 using Qube.Grpc.Utils;
 using System;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using ResponseType = Qube.Grpc.ResponseEnvelope.Types.ResponseType;
+using RxMethod = Qube.Grpc.ResponseEnvelope.Types.RxMethod;
 
 namespace Qube.Grpc
 {
@@ -17,6 +18,7 @@ namespace Qube.Grpc
         private readonly CancellationTokenSource _cancelSource;
 
         private AsyncServerStreamingCall<ResponseEnvelope> _streamingCall;
+        private PortableTypeDefinition[] _types;
 
         public Subscription(StreamDbContextOptions options)
         {
@@ -26,17 +28,30 @@ namespace Qube.Grpc
 
         public void Connect<TIn, TOut>(Expression expression, IObserver<TOut> observer)
         {
-            var seralizedExpression = SerializationHelper.SerializeLinqExpression<TIn, TOut>(expression);
+            var seralizedExpression = SerializationHelper.SerializeLinqExpression<TIn, TOut>(
+                expression,
+                _options.TypesToTransfer.ToArray());
 
             Channel channel = new Channel(_options.ConnectionString, ChannelCredentials.Insecure);
             var client = new StreamService.StreamServiceClient(channel.CreateCallInvoker());
 
-            var classDefinition = new PortableTypeDefiner().BuildDefinition(typeof(TIn));
+            var definer = new PortableTypeDefiner();
+            var classDefinition = definer.BuildDefinition(typeof(TIn));
+            var enums = definer.BuildDefinitions(_options.TypesToTransfer.Where(t => t.IsEnum).ToArray());
+            var types = definer.BuildDefinitions(_options.TypesToTransfer.Where(t => !t.IsEnum).ToArray());
+
+            _types = enums.Concat(new[] { classDefinition }).Concat(types)
+                .GroupBy(t => new { t.AssemblyName, t.ClassName })
+                .Select(g => g.First())
+                .ToArray();
+
+            // TODO: Add type being queried + categories etc.
 
             var queryEnvelope = new QueryEnvelope
             {
                 Payload = seralizedExpression,
-                ClassDefinition = JsonConvert.SerializeObject(classDefinition)
+                SourceTypeName = classDefinition.ClassName,
+                RegisteredTypes = JsonConvert.SerializeObject(_types),
             };
 
             _streamingCall = client.QueryStreamAsync(queryEnvelope);
@@ -76,18 +91,19 @@ namespace Qube.Grpc
             {
                 var @event = _streamingCall.ResponseStream.Current;
 
-                switch (@event.ResponseType)
+                switch (@event.RxMethod)
                 {
-                    case ResponseType.Next:
-                        var payload = EnvelopeHelper.Unpack<T>(@event.Payload);
+                    case RxMethod.Next:
+                        var payloadType = _options.TypesToTransfer.Single(t => @event.PayloadType.IndexOf(t.FullName) != -1);
+                        var payload = EnvelopeHelper.Unpack<T>(@event.Payload, payloadType);
                         onNext(payload);
                         break;
 
-                    case ResponseType.Completed:
+                    case RxMethod.Completed:
                         onCompleted();
                         return;
 
-                    case ResponseType.Error:
+                    case RxMethod.Error:
                         var ex = EnvelopeHelper.Unpack<Exception>(@event.Payload);
                         onError(ex);
                         return;

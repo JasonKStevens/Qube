@@ -1,6 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Linq;
-using Qube.Core.Utils;
 
 namespace Qube.Core
 {
@@ -9,6 +10,7 @@ namespace Qube.Core
         private Func<StreamDbContextOptions, Type, object> _streamFactory;
 
         public string ConnectionString { get; private set; }
+        public List<Type> TypesToTransfer { get; private set; } = new List<Type>();
 
         public void SetStreamFactory(Func<StreamDbContextOptions, Type, object> streamFactory)
         {
@@ -20,7 +22,17 @@ namespace Qube.Core
             ConnectionString = url;
         }
 
+        public void RegisterTypes(IEnumerable<Type> types)
+        {
+            TypesToTransfer.AddRange(types);
+        }
+
         public IQbservable<TIn> CreateStream<TIn>()
+        {
+            return (IQbservable<TIn>)_streamFactory(this, typeof(TIn));
+        }
+
+        public IQbservable<TIn> CreateCategoriesStream<TIn>(params string[] categoryNames)
         {
             return (IQbservable<TIn>)_streamFactory(this, typeof(TIn));
         }
