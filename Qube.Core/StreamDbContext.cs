@@ -23,9 +23,9 @@ namespace Qube.Core
             return _options.CreateStream<T>();
         }
 
-        public IQbservable<T> FromStreams<T>(params string[] streamName)
+        public IQbservable<T> FromStreams<T>(params string[] streamPatterns)
         {
-            throw new NotImplementedException();
+            return _options.CreateStream<T>(streamPatterns);
         }
     }
 }

@@ -1,5 +1,6 @@
-﻿using Qube.Core;
-using System;
+﻿using System;
+using Qube.Core;
+using Qube.Grpc;
 
 namespace Qube.EventStore
 {
@@ -12,12 +13,12 @@ namespace Qube.EventStore
             return builder;
         }
 
-        private static object CreateStream(StreamDbContextOptions options, Type genericParam)
+        private static object CreateStream(StreamDbContextOptions options, Type genericParam, string[] streamPatterns)
         {
             var stream = typeof(Stream<>)
                 .MakeGenericType(new[] { genericParam })
                 .GetConstructor(new[] { typeof(StreamDbContextOptions) })
-                .Invoke(new object[] { options });
+                .Invoke(new object[] { options, streamPatterns });
             return stream;
         }
     }

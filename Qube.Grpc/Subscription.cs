@@ -15,14 +15,16 @@ namespace Qube.Grpc
     public class Subscription : IDisposable
     {
         private readonly StreamDbContextOptions _options;
+        private readonly string[] _streamPatterns;
         private readonly CancellationTokenSource _cancelSource;
 
         private AsyncServerStreamingCall<ResponseEnvelope> _streamingCall;
         private PortableTypeDefinition[] _types;
 
-        public Subscription(StreamDbContextOptions options)
+        public Subscription(StreamDbContextOptions options, string[] streamPatterns)
         {
             _options = options;
+            _streamPatterns = streamPatterns;
             _cancelSource = new CancellationTokenSource();
         }
 
@@ -45,13 +47,12 @@ namespace Qube.Grpc
                 .Select(g => g.First())
                 .ToArray();
 
-            // TODO: Add type being queried + categories etc.
-
             var queryEnvelope = new QueryEnvelope
             {
                 Payload = seralizedExpression,
                 SourceTypeName = classDefinition.ClassName,
                 RegisteredTypes = JsonConvert.SerializeObject(_types),
+                StreamPattern = JsonConvert.SerializeObject(_streamPatterns)
             };
 
             _streamingCall = client.QueryStreamAsync(queryEnvelope);

@@ -12,12 +12,12 @@ namespace Qube.Grpc
             return builder;
         }
 
-        private static object StreamFactory(StreamDbContextOptions options, Type genericParam)
+        private static object StreamFactory(StreamDbContextOptions options, Type genericParam, string[] streamPatterns)
         {
             var stream = typeof(Stream<>)
                 .MakeGenericType(new[] { genericParam })
                 .GetConstructor(new[] { typeof(StreamDbContextOptions) })
-                .Invoke(new object[] { options });
+                .Invoke(new object[] { options, streamPatterns });
             return stream;
         }
     }

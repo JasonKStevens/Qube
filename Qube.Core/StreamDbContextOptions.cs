@@ -7,12 +7,12 @@ namespace Qube.Core
 {
     public class StreamDbContextOptions
     {
-        private Func<StreamDbContextOptions, Type, object> _streamFactory;
+        private Func<StreamDbContextOptions, Type, string[], object> _streamFactory;
 
         public string ConnectionString { get; private set; }
         public List<Type> TypesToTransfer { get; private set; } = new List<Type>();
 
-        public void SetStreamFactory(Func<StreamDbContextOptions, Type, object> streamFactory)
+        public void SetStreamFactory(Func<StreamDbContextOptions, Type, string[], object> streamFactory)
         {
             _streamFactory = streamFactory;
         }
@@ -27,14 +27,9 @@ namespace Qube.Core
             TypesToTransfer.AddRange(types);
         }
 
-        public IQbservable<TIn> CreateStream<TIn>()
+        public IQbservable<TIn> CreateStream<TIn>(params string[] streamPatterns)
         {
-            return (IQbservable<TIn>)_streamFactory(this, typeof(TIn));
-        }
-
-        public IQbservable<TIn> CreateCategoriesStream<TIn>(params string[] categoryNames)
-        {
-            return (IQbservable<TIn>)_streamFactory(this, typeof(TIn));
+            return (IQbservable<TIn>)_streamFactory(this, typeof(TIn), streamPatterns);
         }
     }
 }

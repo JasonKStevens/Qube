@@ -51,7 +51,7 @@ namespace Qube.EventStore.Client
             var es = new EventStoreContext(options);
 
             var orderEvents = es.FromAll<BaseEvent>();
-            var customerEvents = es.FromAll<BaseEvent>();
+            var customerEvents = es.FromStreams<BaseEvent>("Customer-*");
 
             var stream = orderEvents
                 .GroupBy(e =>
