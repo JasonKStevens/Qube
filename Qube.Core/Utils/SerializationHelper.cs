@@ -1,11 +1,10 @@
 ﻿using Serialize.Linq.Serializers;
 using System;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reactive.Linq;
 using JsonSerializer = Serialize.Linq.Serializers.JsonSerializer;
 
-namespace Qube.Core
+namespace Qube.Core.Utils
 {
     public static class SerializationHelper
     {

@@ -1,14 +1,15 @@
-﻿using Grpc.Core;
-using Newtonsoft.Json;
-using Qube.Core;
-using Qube.Core.Utils;
-using Qube.Grpc.Utils;
-using System;
+﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Grpc.Core;
+using Qube.Core;
+using Qube.Core.Types;
+using Qube.Grpc.Utils;
 using RxMethod = Qube.Grpc.ResponseEnvelope.Types.RxMethod;
+using Qube.Core.Utils;
 
 namespace Qube.Grpc
 {
@@ -42,7 +43,9 @@ namespace Qube.Grpc
             var enums = definer.BuildDefinitions(_options.TypesToTransfer.Where(t => t.IsEnum).ToArray());
             var types = definer.BuildDefinitions(_options.TypesToTransfer.Where(t => !t.IsEnum).ToArray());
 
-            _types = enums.Concat(new[] { classDefinition }).Concat(types)
+            _types = enums
+                .Concat(new[] { classDefinition })
+                .Concat(types)
                 .GroupBy(t => new { t.AssemblyName, t.ClassName })
                 .Select(g => g.First())
                 .ToArray();

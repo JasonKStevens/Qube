@@ -21,14 +21,14 @@ namespace Qube.Core
             var castSourceQbservable = GetCastMethod(sourceType)
                 .Invoke(null, new[] { sourceQbservable });
 
-            _qbservable = (IQbservable<TOut>)CastStreamToOutputType(queryExpression)
+            _qbservable = (IQbservable<TOut>) CastStreamToOutputType(queryExpression)
                 .Compile()
                 .DynamicInvoke(castSourceQbservable);
         }
 
-        public IDisposable Subscribe(IObserver<TOut> observer)
+        public IDisposable Subscribe(IObserver<TOut> Qbserver)
         {
-            return _qbservable.Subscribe(observer);
+            return _qbservable.Subscribe(Qbserver);
         }
 
         /// <summary>

@@ -1,13 +1,8 @@
 using System;
-using System.Linq;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core;
-using Newtonsoft.Json;
-using Qube.Core;
-using Qube.Core.Utils;
 using Qube.Grpc.Utils;
 
 namespace Qube.Grpc.Server
@@ -25,10 +20,8 @@ namespace Qube.Grpc.Server
         {
             try
             {
-                using (var broker = new GrpcBroker(queryEnvelope))
-                {
-                    await Run(broker, responseStream);
-                }
+                var broker = new GrpcBroker(queryEnvelope);
+                await Run(broker, responseStream);
             }
             catch (Exception ex)
             {
@@ -51,11 +44,11 @@ namespace Qube.Grpc.Server
                 do
                 {
                     var @event = Activator.CreateInstance(broker.SourceType);
-                    //sourceType.GetProperty("CustomerId").SetValue(@event, Guid.NewGuid());
-                    //sourceType.GetProperty("Email").SetValue(@event, "some-email@blah.com");
-                    //sourceType.GetProperty("PhoneNumber").SetValue(@event, "09-" + random.Next(0, 6));
+                    broker.SourceType.GetProperty("CustomerId").SetValue(@event, Guid.NewGuid());
+                    broker.SourceType.GetProperty("Email").SetValue(@event, "some-email@blah.com");
+                    broker.SourceType.GetProperty("PhoneNumber").SetValue(@event, "09-" + random.Next(0, 6));
 
-                    broker.Subject.OnNext(@event);
+                    broker.Observer.OnNext(@event);
 
                     await Task.Delay(random.Next(0, 500));
 
@@ -68,11 +61,11 @@ namespace Qube.Grpc.Server
 
                 if (isComplete)
                 {
-                    broker.Subject.OnCompleted();
+                    broker.Observer.OnCompleted();
                 }
                 else if (isError)
                 {
-                    broker.Subject.OnError(new Exception("Example error"));
+                    broker.Observer.OnError(new Exception("Example error"));
                 }
             }
         }

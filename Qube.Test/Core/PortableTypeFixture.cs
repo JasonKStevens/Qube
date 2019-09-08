@@ -1,10 +1,10 @@
-using DeepEqual.Syntax;
-using Microsoft.Reactive.Testing;
-using NUnit.Framework;
-using Qube.Core.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Reactive.Testing;
+using DeepEqual.Syntax;
+using NUnit.Framework;
+using Qube.Core.Types;
 
 namespace Qube.Test
 {

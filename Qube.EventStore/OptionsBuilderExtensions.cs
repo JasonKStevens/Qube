@@ -17,7 +17,7 @@ namespace Qube.EventStore
         {
             var stream = typeof(Stream<>)
                 .MakeGenericType(new[] { genericParam })
-                .GetConstructor(new[] { typeof(StreamDbContextOptions) })
+                .GetConstructor(new[] { typeof(StreamDbContextOptions), typeof(string[]) })
                 .Invoke(new object[] { options, streamPatterns });
             return stream;
         }

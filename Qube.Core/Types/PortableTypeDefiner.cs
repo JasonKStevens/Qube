@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Reflection;
 
-namespace Qube.Core.Utils
+namespace Qube.Core.Types
 {
     /// <summary>
     /// Defines a type that the server-side linq expression can use.

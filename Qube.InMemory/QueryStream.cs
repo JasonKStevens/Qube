@@ -8,6 +8,7 @@ namespace Qube.InMemory
     internal class QueryStream<TIn, TOut> : IQbservable<TOut>
     {
         private readonly StreamDbContextOptions _options;
+        private readonly string[] _streamPatterns;
         private readonly IObservable<TIn> _observable;
 
         public Type ElementType { get; private set; }
@@ -18,10 +19,12 @@ namespace Qube.InMemory
             IQbservableProvider provider,
             Expression expression,
             IObservable<TIn> observable,
-            StreamDbContextOptions options)
+            StreamDbContextOptions options,
+            string[] streamPatterns)
         {
             _observable = observable;
             _options = options;
+            _streamPatterns = streamPatterns;
 
             ElementType = typeof(TIn);
             Provider = provider;
@@ -30,7 +33,7 @@ namespace Qube.InMemory
 
         public IDisposable Subscribe(IObserver<TOut> observer)
         {
-            var sub = new Subscription<TIn, TOut>(Expression, _observable, _options);
+            var sub = new Subscription<TIn, TOut>(Expression, _observable, _options, _streamPatterns);
             sub.Attach(observer);
             return sub;
         }

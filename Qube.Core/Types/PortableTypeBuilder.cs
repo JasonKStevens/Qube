@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace Qube.Core.Utils
+namespace Qube.Core.Types
 {
     /// <summary>
     /// Dynamically creates a type that the server-side linq expression can use.

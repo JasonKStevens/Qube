@@ -28,7 +28,7 @@ namespace Qube.InMemory
 
         public IDisposable Subscribe(IObserver<T> observer)
         {
-            var sub = new Subscription<T, T>(Expression, _observable, _options);
+            var sub = new Subscription<T, T>(Expression, _observable, _options, _streamPatterns);
             sub.Attach(observer);
             return sub;
         }

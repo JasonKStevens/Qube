@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Qube.Core.Utils
+﻿namespace Qube.Core.Types
 {
     public class PortableTypeDefinition
     {

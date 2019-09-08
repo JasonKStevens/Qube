@@ -13,14 +13,16 @@ namespace Qube.InMemory
         private readonly Expression _expression;
         private readonly IObservable<TIn> _observable;
         private readonly StreamDbContextOptions _options;
+        private readonly string[] _streamPatterns;
         private IDisposable _sub;
 
-        internal Subscription(Expression expression, IObservable<TIn> observable, StreamDbContextOptions options)
+        internal Subscription(Expression expression, IObservable<TIn> observable, StreamDbContextOptions options, string[] streamPatterns)
         {
             _isLinqQuery = expression is MethodCallExpression;
             _expression = expression;
             _observable = observable;
             _options = options;
+            _streamPatterns = streamPatterns;
         }
 
         internal void Attach(IObserver<TOut> observer)

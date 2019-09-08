@@ -12,13 +12,12 @@ namespace Qube.Core
             _options = options;
         }
 
-        // TODO: Base event type for All or object?
-        public IQbservable<T> FromAll<T>()
+        public IQbservable<object> FromAll()
         {
-            return _options.CreateStream<T>();
+            return FromAll<object>();
         }
 
-        public IQbservable<T> When<T>()
+        public IQbservable<T> FromAll<T>()
         {
             return _options.CreateStream<T>();
         }
