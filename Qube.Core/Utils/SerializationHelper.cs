@@ -1,5 +1,6 @@
 ﻿using Serialize.Linq.Serializers;
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reactive.Linq;
 using JsonSerializer = Serialize.Linq.Serializers.JsonSerializer;
@@ -14,6 +15,7 @@ namespace Qube.Core.Utils
         {
             var expressionSerializer = new ExpressionSerializer(JsonSerializer);
             expressionSerializer.AddKnownTypes(knownTypes);
+            expressionSerializer.AddKnownType(typeof(Dictionary<string, object>));
             return expressionSerializer;
         }
 
@@ -28,10 +30,11 @@ namespace Qube.Core.Utils
             return serializedLambda;
         }
 
-        public static LambdaExpression DeserializeLinqExpression(string expressionString)
+        public static LambdaExpression DeserializeLinqExpression(string expressionString, params Type[] knownTypes)
         {
-            var serializer = new ExpressionSerializer(new JsonSerializer());
-            var expression = (LambdaExpression) serializer.DeserializeText(expressionString);
+            var expressionSerializer = NewExpressionSerializer(knownTypes);
+
+            var expression = (LambdaExpression)expressionSerializer.DeserializeText(expressionString);
             return expression;
         }
     }

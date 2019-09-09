@@ -114,7 +114,7 @@ namespace Qube.Test
     }
 
     public class Test1Class { }
-    public class Test2Class { public int P1 { get; set; } public string P2 { get; set; } public long P3 { get; set; } public Guid P4 { get; set; } public DateTime P5 { get; set; } }
+    public class Test2Class { public int P1 { get; set; } public string P2 { get; set; } public decimal? P3 { get; set; } public Guid P4 { get; set; } public DateTimeOffset P5 { get; set; } }
     public class Test3Class { public byte[] P1 { get; set; } public Int64 P2 { get; set; } public List<String> P3 { get; set; } }
 
     public interface ITestInterface {}

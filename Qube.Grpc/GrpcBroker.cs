@@ -27,7 +27,7 @@ namespace Qube.Grpc
 
             _subject = new Subject<object>();
 
-            var queryExpression = SerializationHelper.DeserializeLinqExpression(queryEnvelope.Payload);
+            var queryExpression = SerializationHelper.DeserializeLinqExpression(queryEnvelope.Payload, RegisteredTypes);
             
             Observable = new ServerQueryObservable<object>(SourceType, _subject.AsQbservable(), queryExpression);
         }

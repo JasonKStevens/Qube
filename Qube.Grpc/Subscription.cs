@@ -98,7 +98,13 @@ namespace Qube.Grpc
                 switch (@event.RxMethod)
                 {
                     case RxMethod.Next:
-                        var payloadType = _options.TypesToTransfer.Single(t => @event.PayloadType.IndexOf(t.FullName) != -1);
+                        var payloadType = _options.TypesToTransfer.FirstOrDefault(t => @event.PayloadType.IndexOf(t.FullName) != -1);
+                        if (payloadType == null)
+                        {
+                            // TODO: Log this (separate gRpc log)
+                            break;
+                        }
+
                         var payload = EnvelopeHelper.Unpack<T>(@event.Payload, payloadType);
                         onNext(payload);
                         break;
@@ -108,6 +114,7 @@ namespace Qube.Grpc
                         return;
 
                     case RxMethod.Error:
+                        // TODO: Exotic error types aren't supported atm
                         var ex = EnvelopeHelper.Unpack<Exception>(@event.Payload);
                         onError(ex);
                         return;
