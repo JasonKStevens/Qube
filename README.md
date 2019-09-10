@@ -11,19 +11,13 @@ var options = new StreamDbContextOptionsBuilder()
     .Options;
 
 new EventStoreContext(options)
-    .FromAll()
-    .Where(e => e.EventType == "CustomerCreatedEvent")
-    .Where(e => new DateTime(2018, 3, 1) <= e.Created)
-    .TakeWhile(e => e.Created < new DateTime(2018, 4, 1))
-    .Select(e => e.Data)
-    .Subscribe(
-        onNext: s =>
-        {
-            var @event = JsonConvert.DeserializeObject<CustomerCreatedEvent>(s);
-            Console.WriteLine($"{@event.CustomerId}: {@event.Email}");
-        },
-        onError: e => Console.WriteLine("ERROR: " + e),
-        onCompleted: () => Console.WriteLine("DONE")
+    .When<CustomerCreatedEvent>()
+    .Where(e => e.Email.Contains(".test@"))
+    .Subscribe
+    (
+        onNext: e => Console.WriteLine(e.CustomerId),
+        onError: ex => Console.WriteLine("ERROR: " + ex),
+        onCompleted: () => Console.WriteLine("COMPLETED")
     );
 ```
 
@@ -70,9 +64,6 @@ new StreamDbContext(options)
         (s, e) => new { Count = s.Count + 1, e.Category }
     ));
 ```
-
-### Multiple Event Types
-As with IQueryable, dynamic types (and statement bodies) can't be used because of the expression trees in the interface.  Event streams can have different event types though, so there needs to be a way to query over their properties without a lot of fuss.
 
 ### Server Actions
 Server-side actions in the query are important, for example to `emit` and `linkTo` new streams.
