@@ -1,4 +1,8 @@
 # Qube
+**This project has been tombstoned.**
+**Rx works well to a point but the big feature that's missing with it and EventStore (as of late 2019) is a way to emit new streams into partitioned storage and a way to aggregate them.  In other words what's missing is a distributed map-reduce.**
+
+---
 [![Build Status](https://dev.azure.com/jasonkstevens/PuzzleBox/_apis/build/status/JasonKStevens.Qube?branchName=master)](https://dev.azure.com/jasonkstevens/PuzzleBox/_build/latest?definitionId=8&branchName=master)
 
 This library is an experimental [Rx](https://github.com/dotnet/reactive) client for an [EventStore fork](https://github.com/JasonKStevens/EventStoreRx), but written to be general purpose.
