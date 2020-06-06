@@ -1,7 +1,7 @@
 # Qube
 **This project has been tombstoned.**
 
-**Rx works well to a point but the big feature that's missing with EventStore (as of late 2019) is partitioned storage and a way to aggregate them.  In other words, what's missing from the tech is a distributed map-reduce.**
+**Rx works well to a point but the big feature that's missing with EventStore (as of late 2019) is partitioned storage and a way to fan-in & out across partitions.  In other words, what's missing from the tech is a distributed map-reduce.**
 
 ---
 [![Build Status](https://dev.azure.com/jasonkstevens/PuzzleBox/_apis/build/status/JasonKStevens.Qube?branchName=master)](https://dev.azure.com/jasonkstevens/PuzzleBox/_build/latest?definitionId=8&branchName=master)
